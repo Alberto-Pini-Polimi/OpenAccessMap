@@ -1,5 +1,6 @@
 import folium
 from pathlib import Path
+import polyline
 
 base_directory = Path(__file__).resolve().parent.parent
 
@@ -152,7 +153,7 @@ class Map:
         for barriera in barriere:
             self.aggiungiElemento(barriera, colore="red", icona="warning-sign")
 
-    def aggiungiMezzoPubblico(self, inizio, fine, nome_inizio, nome_fine, tipologia_mezzo, nome_linea):
+    def aggiungiMezzoPubblico(self, inizio, fine, nome_inizio, nome_fine, tipologia_mezzo, nome_linea, traccia):
         """
         disegna la tratta dei mezzi pubblici tra inizio e fine,
         se in futuro si useranno piu mappe si potra passare quella desiderata
@@ -177,7 +178,7 @@ class Map:
 
         # aggiungo la polyline col percorso che inizia e finisce in due punti diversi
         self.aggiungiPolyline(
-            coordinate=[start, end], # solo inizio e fine ma volendo si possono mettere tutte le coordinate del percorso che fa il mezzo
+            coordinate=polyline.decode(traccia), 
             colore=s["color"],
             peso=s["weight"],
             opacità=0.9,
@@ -188,14 +189,14 @@ class Map:
         # aggiungo il marker per la salita sul mezzo
         self.aggiungiMarker(
             punto=start,
-            icona=folium.Icon(angle=45, color="green", icon="arrow-up"),
+            icona=folium.Icon(color="orange", icon="arrow-up"),
             tooltip=f'Sali su "{linea}"'
         )
 
         # aggiungo il marker per l'usciata dal mezzo
         self.aggiungiMarker(
-            punto=start,
-            icona=folium.Icon(angle=-45, color="green", icon="arrow-up"),
+            punto=end,
+            icona=folium.Icon(color="blue", icon="arrow-down"),
             tooltip=f'Scendi da "{linea}"'
         )
 

@@ -1,3 +1,4 @@
+from ORS_utility import Percorso
 import json
 import requests
 import os
@@ -6,6 +7,7 @@ from shapely.geometry import Point, Polygon, MultiPolygon
 from pathlib import Path
 from maps import Map # classe contenente tutte le funzioni necessarie per renderizzare la mappa finale
 from ORS_utility import *
+import polyline
 
 # base directory per sapere dove andare a pescare i dati ORS
 base_directory = Path(__file__).resolve().parent.parent # this corresponds to the base directory of the repo
@@ -103,14 +105,27 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
 
 
 
-def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, mappaACuiAggiungereLaLegCalcolata, wheelchair=False):
+def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, percorsoPolyline, mappaACuiAggiungereLaLegCalcolata, wheelchair=False):
     """ritorna l'oggetto mappa aggiornato con percorso, barriere, infrastrutture e facilitatori a seconda che l'utente ha richiesto wheelchair"""
 
-    # ------------ CALCOLO PERCORSO STANDARD ------------
+    # se il percorso è già stato calcolato da OTP allora skippo la call a ORS:
+    percorso = None
+    if percorsoPolyline is not None:
+        percorso = Percorso({
+            "summary": {
+                "distance": 0,
+                "duration": 0
+            },
+            "bbox": computeBbox(percorsoPolyline),
+            "geometry": percorsoPolyline # to be decoded
+        })
+        #print("calcolato percorso con OTP")
+    else: 
+        # ------------ CALCOLO PERCORSO STANDARD ------------
 
-    #print(f"Walk leg: {coordinateInizio} a {coordinateFine}...")
-    # quello calcolato è il percorso di default ed anche il più veloce
-    percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine)[0])
+        #print(f"Walk leg: {coordinateInizio} a {coordinateFine}...")
+        # quello calcolato è il percorso di default ed anche il più veloce
+        percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine)[0])
 
     # ------------ CARICAMENTO DATI DAL DB ------------
 
@@ -190,3 +205,11 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, mappa
                 tutte_barriere_da_evitare.append(barriera)
 
     return mappaACuiAggiungereLaLegCalcolata
+
+
+def computeBbox(pol):
+    """data una polyline ritorna la bbox che la contiene"""
+    p = polyline.decode(pol)
+    lats = [coord[0] for coord in p]
+    lons = [coord[1] for coord in p]
+    return [min(lats), min(lons), max(lats), max(lons)]

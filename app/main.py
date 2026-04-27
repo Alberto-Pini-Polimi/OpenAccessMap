@@ -1,3 +1,4 @@
+import router
 import os
 import sqlite3
 import time
@@ -562,7 +563,7 @@ def dashboard():
             # PROVO A FARE IL ROUTING
             try:
                 # questo esegue OTP, divide in legs e aggiunge tutto alla mappa (i legs a piedi vengono calcolati di ORS)
-                resultMap, resultText = OTP_routing.route(variables=variables) # resultMap è la mappa risultato 
+                resultMap, resultText = router.route(variables=variables) # resultMap è la mappa risultato 
 
             except ImportError as e:
                 conn.close()
@@ -613,7 +614,7 @@ def debug_route():
         return redirect(url_for("login"))
 
     try:
-        resultMap, resultText = OTP_routing.route(variables=variables)
+        resultMap, resultText = router.route(variables=variables)
         return render_template(
             "result.html",
             variables=variables,
