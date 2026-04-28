@@ -17,10 +17,11 @@ def route(variables):
     # ===============
 
     # first I call OTP with all the variables
-    otp_patterns = OTP_routing.route_OTP(variables, numberOfPatterns=2)
+    otp_patterns = OTP_routing.route_OTP(variables, numberOfPatterns=1)
     # check if no error occured
     if otp_patterns is None:
-        return None
+        # throw an error
+        raise RuntimeError("Impossibile calcolare questo percorso con OTP!")
     # deduplicate patterns that are equal
     if len(otp_patterns) > 1:
         otp_patterns = deduplicatePatterns(otp_patterns)
@@ -29,7 +30,7 @@ def route(variables):
     wheelchair = variables["wheelchair"]
 
     # logs calculated patterns:
-    outputString = log(otp_patterns, wheelchair)
+    outputData = log(otp_patterns, wheelchair)
 
     # =================================
     # |  Working on OTP output part   |
@@ -78,7 +79,7 @@ def route(variables):
             wheelchair=wheelchair
         )
     
-    return map, outputString
+    return map, outputData
 
 
 
@@ -148,6 +149,8 @@ def deduplicatePatterns(patterns):
 
 def log(patterns, wheelchair):
 
+    outputData = []
+
     # SVARIATE RIGHE SOLTANTO PER STAMPARE!!
     stringaOutput = ""
     print(f"Top {len(patterns)} itinerari (wheelchair={wheelchair}):")
@@ -173,22 +176,57 @@ def log(patterns, wheelchair):
             tp = leg.get("toPlace") or {}
             nome_partenza = fp.get("name") or "?"
             nome_arrivo = tp.get("name") or "?"
-
-            coordinate_partenza = format_coordinates(fp)
-            coordinate_arrivo = format_coordinates(tp)
+            distance = leg.get("pointsOnLink").get("distance")
+            #length = leg.get("pointsOnLink").get("length")
 
             if mode == "FOOT":
-                stringaOutput += f"\t{j}. 🚶 {nome_partenza} {coordinate_partenza} --> {nome_arrivo} {coordinate_arrivo}\n"
+                stringaOutput += (
+                    f"{j:>2}. "
+                    f"{'🚶':<5}"
+                    f"{distance:>6} m   "
+                    f"{nome_partenza:<25} -> "
+                    f"{nome_arrivo:<25}\n"
+                )
+
+                outputData.append({
+                    "mode": mode,
+                    "distance": distance,
+                    "start_name": nome_partenza,
+                    "end_name": nome_arrivo
+                })
+
             else:
                 line = leg.get("line") or {}
+
                 codice_linea = line.get("publicCode") or ""
                 nome_linea = line.get("name") or ""
-                linea_completa = (f"{codice_linea} {nome_linea}").strip() or "Linea sconosciuta"
-                stringaOutput += f"\t{j}. {mode} {nome_partenza} {coordinate_partenza} --> {nome_arrivo} {coordinate_arrivo} ({linea_completa})\n"
 
-    print(stringaOutput) # questa la posso usare dopo per mostrarlo in results.html (dopo un parsing che avviene in un'helper function nel main.py)
+                linea_completa = (
+                    f"{codice_linea} {nome_linea}"
+                ).strip() or "Linea sconosciuta"
 
-    return stringaOutput
+                stringaOutput += (
+                    f"{j:>2}. "
+                    f"{mode:<5}"
+                    f"{distance:>6} m   "
+                    f"{nome_partenza:<25} -> "
+                    f"{nome_arrivo:<25} "
+                    f"{linea_completa:<30}\n"
+                )
+
+                outputData.append({
+                    "mode": mode,
+                    "distance": distance,
+                    "start_name": nome_partenza,
+                    "end_name": nome_arrivo,
+                    "line_name": linea_completa
+                })
+    
+    # print output string
+    print(stringaOutput)
+
+    # return output data (to be rendered on the results.html page)
+    return outputData
 
 # HELPER FUNCTIONS PER route()
 

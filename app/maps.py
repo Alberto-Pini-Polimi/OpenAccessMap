@@ -6,7 +6,7 @@ base_directory = Path(__file__).resolve().parent.parent
 
 class Map:
 
-    def __init__(self, center=[45.4642, 9.1900], zoomStart=12.4):
+    def __init__(self, center=[45.4642, 9.1900], zoomStart=14):
         self.mappa = folium.Map(
             location=center,
             zoom_start=zoomStart,

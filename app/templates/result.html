@@ -15,16 +15,56 @@
     </div>
 
     <div class="map-shell">
-        <iframe
-            title="Mappa del percorso"
-            class="map-frame"
-            srcdoc="{{ result }}">
+        <iframe title="Mappa del percorso" class="map-frame" srcdoc="{{ result }}">
         </iframe>
     </div>
 
     <section class="panel" style="margin-top: 18px;">
-        <h2>Testuale</h2>
-        <div class="text-content">{{ resultHTML | safe }}</div>
+        <h2>Riassunto Segmenti</h2>
+        <table class="route-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tipo</th>
+                    <th>Distanza</th>
+                    <th>Partenza</th>
+                    <th>Arrivo</th>
+                    <th>Linea</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for leg in resultData %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+
+                    <td>
+                        {% if leg["mode"] == "FOOT" %}
+                        🚶 Piedi
+                        {% elif leg["mode"] == "BUS" %}
+                        🚌 Bus
+                        {% elif leg["mode"] == "METRO" %}
+                        🚇 Metro
+                        {% else %}
+                        {{ leg["mode"] }}
+                        {% endif %}
+                    </td>
+
+                    <td>{{ leg["distance"] }} m</td>
+                    <td>{{ leg["start_name"] }}</td>
+                    <td>{{ leg["end_name"] }}</td>
+
+                    <td>
+                        {% if leg["line_name"] is not none %}
+                        {{ leg["line_name"] }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </section>
 
     {% if variables %}
@@ -59,72 +99,141 @@
 </div>
 
 <style>
-.result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 18px;
-    flex-wrap: wrap;
-}
+    .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
 
-.result-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
+    .result-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
 
-.secondary-btn {
-    display: inline-block;
-    padding: 10px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    border: 1px solid #374151;
-    background: #111827;
-    color: #f9fafb;
-}
+    .secondary-btn {
+        display: inline-block;
+        padding: 10px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        border: 1px solid #374151;
+        background: #111827;
+        color: #f9fafb;
+    }
 
-.secondary-btn:hover {
-    background: #1f2937;
-}
+    .secondary-btn:hover {
+        background: #1f2937;
+    }
 
-.map-shell {
-    width: 100%;
-    height: 75vh;
-    min-height: 520px;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid #d1d5db;
-    background: #fff;
-}
+    .map-shell {
+        width: 100%;
+        height: 75vh;
+        min-height: 520px;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid #d1d5db;
+        background: #fff;
+    }
 
-.map-frame {
-    width: 100%;
-    height: 100%;
-    border: 0;
-    display: block;
-}
+    .map-frame {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
 
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 12px;
-}
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 12px;
+    }
 
-.summary-item {
-    padding: 12px;
-    border-radius: 10px;
-    background: #111827;
-    border: 1px solid #374151;
-    color: #f9fafb;
-}
+    .summary-item {
+        padding: 12px;
+        border-radius: 10px;
+        background: #111827;
+        border: 1px solid #374151;
+        color: #f9fafb;
+    }
 
-.summary-label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #9ca3af;
-}
+    .summary-label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #9ca3af;
+    }
 
+    /* TABELLA PERCORSO */
+    .route-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        overflow: hidden;
+        border-radius: 12px;
+        border: 1px solid #334155;
+        background: #111827;
+        color: #e5e7eb;
+    }
+
+    .route-table thead {
+        background: #1e293b;
+    }
+
+    .route-table th,
+    .route-table td {
+        border: 1px solid #334155;
+        padding: 14px 18px;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .route-table th {
+        font-weight: 700;
+        color: #f9fafb;
+        letter-spacing: 0.3px;
+    }
+
+    .route-table td {
+        color: #d1d5db;
+    }
+
+    .route-table tbody tr:nth-child(even) {
+        background: #0f172a;
+    }
+
+    .route-table tbody tr:nth-child(odd) {
+        background: #111827;
+    }
+
+    .route-table tbody tr:hover {
+        background: #1e293b;
+        transition: background 0.2s ease;
+    }
+
+    .route-table td:first-child,
+    .route-table th:first-child {
+        text-align: center;
+        width: 60px;
+        color: #93c5fd;
+        font-weight: 700;
+    }
+
+    .route-table td:nth-child(2) {
+        font-weight: 600;
+        color: #f9fafb;
+        white-space: nowrap;
+    }
+
+    .route-table td:nth-child(3) {
+        white-space: nowrap;
+        color: #cbd5e1;
+    }
+
+    .route-table td:last-child {
+        color: #a5b4fc;
+    }
 </style>
 {% endblock %}

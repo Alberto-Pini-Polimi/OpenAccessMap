@@ -563,15 +563,19 @@ def dashboard():
             # PROVO A FARE IL ROUTING
             try:
                 # questo esegue OTP, divide in legs e aggiunge tutto alla mappa (i legs a piedi vengono calcolati di ORS)
-                resultMap, resultText = router.route(variables=variables) # resultMap è la mappa risultato 
+                resultMap, resultData = router.route(variables=variables) # resultMap è la mappa risultato 
 
             except ImportError as e:
                 conn.close()
                 flash(f"Non trovo OTP_routing.py: {e}", "error")
                 return render_template("dashboard.html", user=user, favourites=favourites)
+            except RuntimeError as e:
+                conn.close()
+                flash(f"Percorso troppo fuori da Milano: {e}", "error")
+                return render_template("dashboard.html", user=user, favourites=favourites)
             except Exception as e:
                 conn.close()
-                flash(f"Errore durante il routing: {e}", "error")
+                flash(f"Errore generico durante il routing: {e}", "error")
                 return render_template("dashboard.html", user=user, favourites=favourites)
 
             conn.close()
@@ -581,7 +585,8 @@ def dashboard():
                 "result.html",
                 variables=variables,
                 result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
-                resultHTML=format_result_text(resultText)
+                #resultHTML=format_result_text(resultText)
+                resultData=resultData
             )
 
         except ValueError as e:
@@ -614,15 +619,19 @@ def debug_route():
         return redirect(url_for("login"))
 
     try:
-        resultMap, resultText = router.route(variables=variables)
+        resultMap, resultData = router.route(variables=variables)
         return render_template(
             "result.html",
             variables=variables,
             result=resultMap.getMappaInHTML(),
-            resultHTML = format_result_text(resultText)
+            #resultHTML = format_result_text(resultText),
+            resultData = resultData
         )
+    except RuntimeError as e:
+        flash(f"Probabilmente percorso troppo fuori da Milano: {e}")
+        return redirect(url_for("login"))
     except Exception as e:
-        flash(f"Errore durante il routing di debug: {e}", "error")
+        flash(f"Errore generico durante il routing: {e}", "error")
         return redirect(url_for("login"))
 
 
