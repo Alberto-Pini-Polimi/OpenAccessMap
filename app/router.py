@@ -1,4 +1,3 @@
-from lib2to3.fixes import fix_itertools_imports
 from typing import Dict
 import OTP_routing
 import ORS_routing
@@ -153,7 +152,6 @@ def log(patterns, wheelchair):
 
     # SVARIATE RIGHE SOLTANTO PER STAMPARE!!
     stringaOutput = ""
-    print(f"Top {len(patterns)} itinerari (wheelchair={wheelchair}):")
     for idx, p in enumerate(patterns, 1):
         # cose per il print
         costo_secondi = p.get("generalizedCost")
@@ -165,7 +163,7 @@ def log(patterns, wheelchair):
         costo_str = f"{costo_minuti:.1f} min" if costo_minuti is not None else "n/d"
         durata_str = f"{durata_minuti} min" if durata_minuti is not None else "n/d"
 
-        stringaOutput += f"\n--- Itinerario #{idx} ---\n"
+        #stringaOutput += f"\n--- Itinerario #{idx} ---\n"
         stringaOutput += f"Generalized cost: {costo_str} | Durata prevista: {durata_str}\n"
 
         # STAMPO LE INFO SULLE SINGOLE LEGS

@@ -42,6 +42,10 @@ echo "✅ Build completata in $duration secondi"
 echo ""
 
 # 5/5 - Istruzioni per avvio manuale
-echo "📌 5/5 - Avvio servizio"
+echo "📌 5/5 - Avvio servizio in background"
 docker compose up -d
 echo "✅ servizio avviato"
+
+echo ""
+echo "📜 I log di python-app verranno salvati in 'server.log' in background..."
+docker compose logs -f python-app > server.log 2>&1 &

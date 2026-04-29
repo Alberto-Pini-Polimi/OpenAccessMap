@@ -3,3 +3,5 @@ data/OTP_data/graph.obj
 app/DB/database.db
 *.pyc
 /MapOutputFolder
+.continueignore
+server.log

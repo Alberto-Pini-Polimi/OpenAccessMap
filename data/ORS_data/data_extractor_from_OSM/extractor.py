@@ -21,7 +21,10 @@ def carica_query_da_file(nome_file):
 
 def esegui_query_overpass(query):
     url = "https://overpass-api.de/api/interpreter"
-    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'AccessibilityProject/1.0 (student project)'
+    }
     response = requests.post(url, data={'data': query}, headers=headers)
     
     if response.status_code == 200:
@@ -247,12 +250,12 @@ def parsa_dati(risultatoQueryOSM):
 
 # === Main ===
 def main():
-    # trovo le varie cartelle
-    cwd = os.getcwd()
-    cartella_queries = os.path.join(cwd, "queries")
-    cartella_risultati = os.path.join(cwd, "../data")
-    # creo results se non esiste
-    os.makedirs(cartella_risultati, exist_ok=True)
+    # Trovo le varie cartelle calcolandole dinamicamente a prescindere da dove avvio lo script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cartella_queries = os.path.join(script_dir, "queries")
+    
+    # La cartella dei risultati sarà la cartella superiore (ORS_data)
+    cartella_risultati = os.path.abspath(os.path.join(script_dir, ".."))
 
     # trova tutti i file .txt nella cartella "queries"
     file_txt = glob.glob(os.path.join(cartella_queries, "*.txt"))

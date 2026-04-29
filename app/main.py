@@ -7,8 +7,6 @@ import sys
 import bcrypt
 import re
 from datetime import datetime, timezone
-import OTP_routing
-import maps
 
 from flask import (
     Flask,
@@ -36,11 +34,6 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-me")
 
 # URL di OpenTripPlanner
 OTP_URL = os.getenv("OTP_URL", "http://localhost:8080/otp/transmodel/v3")
-
-# Cartella e nome file dove il tuo codice salva la mappa HTML finale
-OUTPUT_DIR = os.path.join(os.getcwd(), "MapOutputFolder")
-MAP_FILENAME = "mappa.html"
-
 
 # =========================
 # OTP helpers
@@ -238,27 +231,6 @@ def get_default_variables(wheelchair=True):
     }
 
 
-def delete_old_map():
-    """
-    Rimuove la vecchia mappa prima di generarne una nuova.
-
-    - esiste sempre al massimo UNA mappa salvata
-    - prima di crearne una nuova, quella precedente viene cancellatata
-
-    Nota:
-    - questa soluzione va bene se non hai più utenti simultanei che generano
-      mappe diverse nello stesso momento.
-      #TODO testa e sistema con piu utenti contemporanei, se no dai nomi unici alle mappe per utente/sessione
-    """
-    file_path = os.path.join(OUTPUT_DIR, MAP_FILENAME)
-    if os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-            print(f"🧹 Vecchia mappa rimossa: {file_path}")
-        except Exception as e:
-            print(f"⚠️ Impossibile rimuovere la vecchia mappa: {e}")
-
-
 # =========================
 # API geocoding
 # =========================
@@ -315,31 +287,6 @@ def api_geocode():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# =========================
-# Output map
-# =========================
-
-@app.route("/output-map")
-def serve_output_map():
-    """
-    Serve il file HTML della mappa finale generata da ORS/OTP.
-
-    In result.html la mappa non viene incorporata direttamente nel template:
-    viene caricata tramite iframe che punta a questa route.
-
-    Vantaggio:
-    - result.html può continuare a estendere base.html e mantenere navbar/stile
-    - la mappa HTML completa (con i suoi script e CSS) resta isolata
-    """
-    file_path = os.path.join(OUTPUT_DIR, MAP_FILENAME)
-
-    if not os.path.exists(file_path):
-        flash("La mappa non è stata ancora generata.", "error")
-        return redirect(url_for("dashboard"))
-
-    return send_from_directory(OUTPUT_DIR, MAP_FILENAME)
 
 
 # =========================
@@ -603,41 +550,5 @@ def dashboard():
     return render_template("dashboard.html", user=user, favourites=favourites)
 
 
-@app.route("/debug-route")
-def debug_route():
-    """
-    Route di debug per generare rapidamente un percorso senza passare dalla form.
-    Utile in sviluppo per testare OTP e la generazione della mappa.
-    """
-    variables = get_default_variables(wheelchair=True)
-    variables["dateTime"] = now_utc_iso()
-    print(variables)
-    
-    otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)
-    if not otp_ready:
-        flash("OTP non è raggiungibile al momento.", "error")
-        return redirect(url_for("login"))
-
-    try:
-        resultMap, resultData = router.route(variables=variables)
-        return render_template(
-            "result.html",
-            variables=variables,
-            result=resultMap.getMappaInHTML(),
-            #resultHTML = format_result_text(resultText),
-            resultData = resultData
-        )
-    except RuntimeError as e:
-        flash(f"Probabilmente percorso troppo fuori da Milano: {e}")
-        return redirect(url_for("login"))
-    except Exception as e:
-        flash(f"Errore generico durante il routing: {e}", "error")
-        return redirect(url_for("login"))
-
-
 if __name__ == "__main__":
-    # Crea la cartella output se non esiste
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    # debug=True, da togliere in produzione
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)
