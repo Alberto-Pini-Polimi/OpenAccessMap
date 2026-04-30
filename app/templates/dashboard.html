@@ -3,7 +3,7 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css" />
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
 
 <div class="card">
@@ -26,13 +26,10 @@
                     <select name="from_favourite" id="from_favourite">
                         <option value="">-- seleziona --</option>
                         {% for fav in favourites %}
-                            <option
-                                value="{{ fav.id }}"
-                                data-lat="{{ fav.latitude }}"
-                                data-lon="{{ fav.longitude }}"
-                                data-label="{{ fav.label }}">
-                                {{ fav.label }} ({{ fav.latitude }}, {{ fav.longitude }})
-                            </option>
+                        <option value="{{ fav.id }}" data-lat="{{ fav.latitude }}" data-lon="{{ fav.longitude }}"
+                            data-label="{{ fav.label }}">
+                            {{ fav.label }} ({{ fav.latitude }}, {{ fav.longitude }})
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -40,12 +37,8 @@
                 <div id="from_manual_wrapper">
                     <label>Indirizzo origine</label>
                     <div class="search-row">
-                        <input
-                            type="text"
-                            id="from_query"
-                            placeholder="Es. Piazza Leonardo da Vinci 32, Milano"
-                            autocomplete="off"
-                        >
+                        <input type="text" id="from_query" placeholder="Es. Piazza Leonardo da Vinci 32, Milano"
+                            autocomplete="off">
                         <button type="button" id="from_search_btn">Cerca</button>
                     </div>
 
@@ -81,13 +74,10 @@
                     <select name="to_favourite" id="to_favourite">
                         <option value="">-- seleziona --</option>
                         {% for fav in favourites %}
-                            <option
-                                value="{{ fav.id }}"
-                                data-lat="{{ fav.latitude }}"
-                                data-lon="{{ fav.longitude }}"
-                                data-label="{{ fav.label }}">
-                                {{ fav.label }} ({{ fav.latitude }}, {{ fav.longitude }})
-                            </option>
+                        <option value="{{ fav.id }}" data-lat="{{ fav.latitude }}" data-lon="{{ fav.longitude }}"
+                            data-label="{{ fav.label }}">
+                            {{ fav.label }} ({{ fav.latitude }}, {{ fav.longitude }})
+                        </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -95,12 +85,7 @@
                 <div id="to_manual_wrapper">
                     <label>Indirizzo destinazione</label>
                     <div class="search-row">
-                        <input
-                            type="text"
-                            id="to_query"
-                            placeholder="Es. Duomo di Milano"
-                            autocomplete="off"
-                        >
+                        <input type="text" id="to_query" placeholder="Es. Duomo di Milano" autocomplete="off">
                         <button type="button" id="to_search_btn">Cerca</button>
                     </div>
 
@@ -132,36 +117,30 @@
             <section class="panel">
                 <h2>Parametri</h2>
 
-                <label>DateTime UTC ISO</label>
-                <input type="text" name="date_time" placeholder="2026-02-28T16:07:08.511Z">
-
-                <label>Search window</label>
-                <input type="number" name="search_window" value="40" min="1">
-
                 <label class="checkbox">
-                    <input type="checkbox" name="arrive_by">
-                    Arrive by
+                    <input type="checkbox" name="wheelchair">
+                    Wheelchair?
                 </label>
 
                 <label class="checkbox">
-                    <input type="checkbox" name="wheelchair">
-                    Wheelchair
+                    <input type="checkbox" name="on_foot">
+                    No Public Transport? (only on foot)
                 </label>
             </section>
 
             <section class="panel">
                 <h2>Preferiti salvati</h2>
                 {% if favourites %}
-                    <ul class="fav-list">
-                        {% for fav in favourites %}
-                            <li>
-                                <strong>{{ fav.label }}</strong><br>
-                                <span>{{ fav.latitude }}, {{ fav.longitude }}</span>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                <ul class="fav-list">
+                    {% for fav in favourites %}
+                    <li>
+                        <strong>{{ fav.label }}</strong><br>
+                        <span>{{ fav.latitude }}, {{ fav.longitude }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
                 {% else %}
-                    <p class="muted">Nessun preferito salvato.</p>
+                <p class="muted">Nessun preferito salvato.</p>
                 {% endif %}
             </section>
         </div>
@@ -171,222 +150,222 @@
 </div>
 
 <style>
-.search-row {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
+    .search-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
 
-.search-row input {
-    flex: 1;
-}
+    .search-row input {
+        flex: 1;
+    }
 
-.search-results {
-    margin-top: 10px;
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-    background: #1f2937;
-    border: 1px solid #374151;
-    border-radius: 12px;
-    padding: 10px;
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-}
+    .search-results {
+        margin-top: 10px;
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
 
-.search-results.open {
-    display: flex;
-}
+    .search-results.open {
+        display: flex;
+    }
 
-.search-result-item {
-    border: 1px solid #4b5563;
-    border-radius: 10px;
-    padding: 12px;
-    background: #111827;
-    color: #f9fafb;
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}
+    .search-result-item {
+        border: 1px solid #4b5563;
+        border-radius: 10px;
+        padding: 12px;
+        background: #111827;
+        color: #f9fafb;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
 
-.search-result-item:hover {
-    background: #1d4ed8;
-    border-color: #60a5fa;
-    transform: translateY(-1px);
-}
+    .search-result-item:hover {
+        background: #1d4ed8;
+        border-color: #60a5fa;
+        transform: translateY(-1px);
+    }
 
-.search-result-item.selected {
-    background: #1e40af;
-    border-color: #93c5fd;
-}
+    .search-result-item.selected {
+        background: #1e40af;
+        border-color: #93c5fd;
+    }
 
-.search-result-title {
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: #ffffff;
-}
+    .search-result-title {
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #ffffff;
+    }
 
-.search-result-meta {
-    font-size: 0.92rem;
-    color: #d1d5db;
-    margin-top: 4px;
-}
+    .search-result-meta {
+        font-size: 0.92rem;
+        color: #d1d5db;
+        margin-top: 4px;
+    }
 
-.selected-address {
-    margin-top: 10px;
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: #111827;
-    border: 1px solid #374151;
-    color: #f9fafb;
-    line-height: 1.45;
-}
+    .selected-address {
+        margin-top: 10px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: #111827;
+        border: 1px solid #374151;
+        color: #f9fafb;
+        line-height: 1.45;
+    }
 
-.selected-address strong {
-    color: #ffffff;
-}
+    .selected-address strong {
+        color: #ffffff;
+    }
 
-.status-message {
-    border: 1px solid #4b5563;
-    border-radius: 10px;
-    padding: 12px;
-    background: #111827;
-    color: #f9fafb;
-}
+    .status-message {
+        border: 1px solid #4b5563;
+        border-radius: 10px;
+        padding: 12px;
+        background: #111827;
+        color: #f9fafb;
+    }
 
-.status-message.error {
-    border-color: #7f1d1d;
-    background: #2a1111;
-    color: #fecaca;
-}
+    .status-message.error {
+        border-color: #7f1d1d;
+        background: #2a1111;
+        color: #fecaca;
+    }
 
-.leaflet-tooltip.route-label {
-    background: #111827;
-    color: #ffffff;
-    border: none;
-    border-radius: 8px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
-    font-weight: 600;
-    padding: 6px 10px;
-}
+    .leaflet-tooltip.route-label {
+        background: #111827;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+        font-weight: 600;
+        padding: 6px 10px;
+    }
 
-.leaflet-tooltip.route-label:before {
-    border-top-color: #111827;
-}
+    .leaflet-tooltip.route-label:before {
+        border-top-color: #111827;
+    }
 
-.origin-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #16a34a;
-    border: 3px solid #ffffff;
-    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
-}
+    .origin-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #16a34a;
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);
+    }
 
-.destination-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #dc2626;
-    border: 3px solid #ffffff;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
-}
+    .destination-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #dc2626;
+        border: 3px solid #ffffff;
+        box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
+    }
 </style>
 
 <script>
-let addressMap;
-let fromSearchMarkers = [];
-let toSearchMarkers = [];
-let selectedFromMarker = null;
-let selectedToMarker = null;
-let selectedFrom = null;
-let selectedTo = null;
+    let addressMap;
+    let fromSearchMarkers = [];
+    let toSearchMarkers = [];
+    let selectedFromMarker = null;
+    let selectedToMarker = null;
+    let selectedFrom = null;
+    let selectedTo = null;
 
-function initAddressMap() {
-    addressMap = L.map("address-map").setView([45.4642, 9.1900], 12);
+    function initAddressMap() {
+        addressMap = L.map("address-map").setView([45.4642, 9.1900], 12);
 
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(addressMap);
-}
-
-function escapeHtml(text) {
-    return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-function clearSearchMarkers(type) {
-    const markers = type === "from" ? fromSearchMarkers : toSearchMarkers;
-    markers.forEach(marker => addressMap.removeLayer(marker));
-    if (type === "from") {
-        fromSearchMarkers = [];
-    } else {
-        toSearchMarkers = [];
-    }
-}
-
-function buildDotIcon(type) {
-    const className = type === "from" ? "origin-dot" : "destination-dot";
-    return L.divIcon({
-        className: "",
-        html: `<div class="${className}"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8]
-    });
-}
-
-function updateMapBounds() {
-    const points = [];
-
-    if (selectedFrom) {
-        points.push([selectedFrom.lat, selectedFrom.lon]);
-    }
-    if (selectedTo) {
-        points.push([selectedTo.lat, selectedTo.lon]);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(addressMap);
     }
 
-    if (points.length === 1) {
-        addressMap.setView(points[0], 15);
-    } else if (points.length === 2) {
-        addressMap.fitBounds(points, { padding: [40, 40] });
+    function escapeHtml(text) {
+        return String(text)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
-}
 
-function setSelectedAddress(type, item, selectedCard = null) {
-    const lat = Number(item.lat);
-    const lon = Number(item.lon);
-    const label = item.label;
+    function clearSearchMarkers(type) {
+        const markers = type === "from" ? fromSearchMarkers : toSearchMarkers;
+        markers.forEach(marker => addressMap.removeLayer(marker));
+        if (type === "from") {
+            fromSearchMarkers = [];
+        } else {
+            toSearchMarkers = [];
+        }
+    }
 
-    if (type === "from") {
-        document.getElementById("from_lat").value = lat;
-        document.getElementById("from_lon").value = lon;
-        document.getElementById("from_query").value = label;
-        document.getElementById("from_selected_label").innerHTML =
-            `✅ Origine selezionata:<br><strong>${escapeHtml(label)}</strong>`;
+    function buildDotIcon(type) {
+        const className = type === "from" ? "origin-dot" : "destination-dot";
+        return L.divIcon({
+            className: "",
+            html: `<div class="${className}"></div>`,
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+    }
 
-        selectedFrom = { lat, lon, label };
+    function updateMapBounds() {
+        const points = [];
 
-        if (selectedFromMarker) {
-            addressMap.removeLayer(selectedFromMarker);
+        if (selectedFrom) {
+            points.push([selectedFrom.lat, selectedFrom.lon]);
+        }
+        if (selectedTo) {
+            points.push([selectedTo.lat, selectedTo.lon]);
         }
 
-        selectedFromMarker = L.marker([lat, lon], {
-            icon: buildDotIcon("from")
-        }).addTo(addressMap);
+        if (points.length === 1) {
+            addressMap.setView(points[0], 15);
+        } else if (points.length === 2) {
+            addressMap.fitBounds(points, { padding: [40, 40] });
+        }
+    }
 
-        selectedFromMarker
-            .bindTooltip("Origin", {
-                permanent: true,
-                direction: "top",
-                offset: [0, -12],
-                className: "route-label"
-            })
-            .openTooltip();
+    function setSelectedAddress(type, item, selectedCard = null) {
+        const lat = Number(item.lat);
+        const lon = Number(item.lon);
+        const label = item.label;
 
-        selectedFromMarker.bindPopup(`
+        if (type === "from") {
+            document.getElementById("from_lat").value = lat;
+            document.getElementById("from_lon").value = lon;
+            document.getElementById("from_query").value = label;
+            document.getElementById("from_selected_label").innerHTML =
+                `✅ Origine selezionata:<br><strong>${escapeHtml(label)}</strong>`;
+
+            selectedFrom = { lat, lon, label };
+
+            if (selectedFromMarker) {
+                addressMap.removeLayer(selectedFromMarker);
+            }
+
+            selectedFromMarker = L.marker([lat, lon], {
+                icon: buildDotIcon("from")
+            }).addTo(addressMap);
+
+            selectedFromMarker
+                .bindTooltip("Origin", {
+                    permanent: true,
+                    direction: "top",
+                    offset: [0, -12],
+                    className: "route-label"
+                })
+                .openTooltip();
+
+            selectedFromMarker.bindPopup(`
             <div style="min-width:220px;">
                 <h3 style="margin:0 0 8px 0; font-size:16px;">Origin</h3>
                 <div>${escapeHtml(label)}</div>
@@ -397,34 +376,34 @@ function setSelectedAddress(type, item, selectedCard = null) {
             </div>
         `);
 
-        closeResults("from");
-    } else {
-        document.getElementById("to_lat").value = lat;
-        document.getElementById("to_lon").value = lon;
-        document.getElementById("to_query").value = label;
-        document.getElementById("to_selected_label").innerHTML =
-            `✅ Destinazione selezionata:<br><strong>${escapeHtml(label)}</strong>`;
+            closeResults("from");
+        } else {
+            document.getElementById("to_lat").value = lat;
+            document.getElementById("to_lon").value = lon;
+            document.getElementById("to_query").value = label;
+            document.getElementById("to_selected_label").innerHTML =
+                `✅ Destinazione selezionata:<br><strong>${escapeHtml(label)}</strong>`;
 
-        selectedTo = { lat, lon, label };
+            selectedTo = { lat, lon, label };
 
-        if (selectedToMarker) {
-            addressMap.removeLayer(selectedToMarker);
-        }
+            if (selectedToMarker) {
+                addressMap.removeLayer(selectedToMarker);
+            }
 
-        selectedToMarker = L.marker([lat, lon], {
-            icon: buildDotIcon("to")
-        }).addTo(addressMap);
+            selectedToMarker = L.marker([lat, lon], {
+                icon: buildDotIcon("to")
+            }).addTo(addressMap);
 
-        selectedToMarker
-            .bindTooltip("Destination", {
-                permanent: true,
-                direction: "top",
-                offset: [0, -12],
-                className: "route-label"
-            })
-            .openTooltip();
+            selectedToMarker
+                .bindTooltip("Destination", {
+                    permanent: true,
+                    direction: "top",
+                    offset: [0, -12],
+                    className: "route-label"
+                })
+                .openTooltip();
 
-        selectedToMarker.bindPopup(`
+            selectedToMarker.bindPopup(`
             <div style="min-width:220px;">
                 <h3 style="margin:0 0 8px 0; font-size:16px;">Destination</h3>
                 <div>${escapeHtml(label)}</div>
@@ -435,122 +414,122 @@ function setSelectedAddress(type, item, selectedCard = null) {
             </div>
         `);
 
-        closeResults("to");
+            closeResults("to");
+        }
+
+        if (selectedCard) {
+            const resultsContainerId = type === "from" ? "from_results" : "to_results";
+            document
+                .querySelectorAll(`#${resultsContainerId} .search-result-item`)
+                .forEach(el => el.classList.remove("selected"));
+            selectedCard.classList.add("selected");
+        }
+
+        updateMapBounds();
     }
 
-    if (selectedCard) {
-        const resultsContainerId = type === "from" ? "from_results" : "to_results";
-        document
-            .querySelectorAll(`#${resultsContainerId} .search-result-item`)
-            .forEach(el => el.classList.remove("selected"));
-        selectedCard.classList.add("selected");
+    function setSelectedFavourite(type) {
+        const select = document.getElementById(type === "from" ? "from_favourite" : "to_favourite");
+        const option = select.options[select.selectedIndex];
+
+        if (!option || !option.value) {
+            return;
+        }
+
+        const lat = option.dataset.lat;
+        const lon = option.dataset.lon;
+        const label = option.dataset.label || option.text;
+
+        setSelectedAddress(type, {
+            lat: lat,
+            lon: lon,
+            label: label
+        });
     }
 
-    updateMapBounds();
-}
-
-function setSelectedFavourite(type) {
-    const select = document.getElementById(type === "from" ? "from_favourite" : "to_favourite");
-    const option = select.options[select.selectedIndex];
-
-    if (!option || !option.value) {
-        return;
+    function openResults(type) {
+        const container = document.getElementById(type === "from" ? "from_results" : "to_results");
+        container.classList.add("open");
     }
 
-    const lat = option.dataset.lat;
-    const lon = option.dataset.lon;
-    const label = option.dataset.label || option.text;
+    function closeResults(type) {
+        const container = document.getElementById(type === "from" ? "from_results" : "to_results");
+        container.classList.remove("open");
+        container.innerHTML = "";
+        clearSearchMarkers(type);
+    }
 
-    setSelectedAddress(type, {
-        lat: lat,
-        lon: lon,
-        label: label
-    });
-}
+    function setupModeToggle(modeId, manualWrapperId, favouriteWrapperId, saveWrapperId) {
+        const modeSelect = document.getElementById(modeId);
+        const manualWrapper = document.getElementById(manualWrapperId);
+        const favouriteWrapper = document.getElementById(favouriteWrapperId);
+        const saveWrapper = document.getElementById(saveWrapperId);
 
-function openResults(type) {
-    const container = document.getElementById(type === "from" ? "from_results" : "to_results");
-    container.classList.add("open");
-}
+        function updateVisibility() {
+            const isFavourite = modeSelect.value === "favourite";
 
-function closeResults(type) {
-    const container = document.getElementById(type === "from" ? "from_results" : "to_results");
-    container.classList.remove("open");
-    container.innerHTML = "";
-    clearSearchMarkers(type);
-}
+            favouriteWrapper.style.display = isFavourite ? "block" : "none";
+            manualWrapper.style.display = isFavourite ? "none" : "block";
+            saveWrapper.style.display = isFavourite ? "none" : "block";
 
-function setupModeToggle(modeId, manualWrapperId, favouriteWrapperId, saveWrapperId) {
-    const modeSelect = document.getElementById(modeId);
-    const manualWrapper = document.getElementById(manualWrapperId);
-    const favouriteWrapper = document.getElementById(favouriteWrapperId);
-    const saveWrapper = document.getElementById(saveWrapperId);
-
-    function updateVisibility() {
-        const isFavourite = modeSelect.value === "favourite";
-
-        favouriteWrapper.style.display = isFavourite ? "block" : "none";
-        manualWrapper.style.display = isFavourite ? "none" : "block";
-        saveWrapper.style.display = isFavourite ? "none" : "block";
-
-        if (isFavourite) {
-            if (modeId === "from_mode") {
-                closeResults("from");
-            } else {
-                closeResults("to");
+            if (isFavourite) {
+                if (modeId === "from_mode") {
+                    closeResults("from");
+                } else {
+                    closeResults("to");
+                }
             }
         }
+
+        modeSelect.addEventListener("change", updateVisibility);
+        updateVisibility();
     }
 
-    modeSelect.addEventListener("change", updateVisibility);
-    updateVisibility();
-}
+    async function searchAddress(query, type) {
+        const resultsContainer = document.getElementById(type === "from" ? "from_results" : "to_results");
+        const textInput = document.getElementById(type === "from" ? "from_query" : "to_query");
 
-async function searchAddress(query, type) {
-    const resultsContainer = document.getElementById(type === "from" ? "from_results" : "to_results");
-    const textInput = document.getElementById(type === "from" ? "from_query" : "to_query");
+        resultsContainer.innerHTML = "";
+        clearSearchMarkers(type);
 
-    resultsContainer.innerHTML = "";
-    clearSearchMarkers(type);
-
-    if (!query.trim()) {
-        resultsContainer.innerHTML = "<div class='status-message'>Inserisci un indirizzo.</div>";
-        openResults(type);
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-            resultsContainer.innerHTML = "<div class='status-message error'>Nessun indirizzo trovato.</div>";
+        if (!query.trim()) {
+            resultsContainer.innerHTML = "<div class='status-message'>Inserisci un indirizzo.</div>";
             openResults(type);
             return;
         }
 
-        openResults(type);
+        try {
+            const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
 
-        const bounds = [];
+            if (!Array.isArray(data) || data.length === 0) {
+                resultsContainer.innerHTML = "<div class='status-message error'>Nessun indirizzo trovato.</div>";
+                openResults(type);
+                return;
+            }
 
-        data.forEach((item, index) => {
-            const card = document.createElement("div");
-            card.className = "search-result-item";
-            card.innerHTML = `
+            openResults(type);
+
+            const bounds = [];
+
+            data.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.className = "search-result-item";
+                card.innerHTML = `
                 <div class="search-result-title">Risultato ${index + 1}</div>
                 <div>${escapeHtml(item.label)}</div>
                 <div class="search-result-meta">${item.lat}, ${item.lon}</div>
             `;
 
-            const marker = L.circleMarker([item.lat, item.lon], {
-                radius: 7,
-                weight: 2,
-                color: type === "from" ? "#16a34a" : "#dc2626",
-                fillColor: type === "from" ? "#22c55e" : "#ef4444",
-                fillOpacity: 0.9
-            }).addTo(addressMap);
+                const marker = L.circleMarker([item.lat, item.lon], {
+                    radius: 7,
+                    weight: 2,
+                    color: type === "from" ? "#16a34a" : "#dc2626",
+                    fillColor: type === "from" ? "#22c55e" : "#ef4444",
+                    fillOpacity: 0.9
+                }).addTo(addressMap);
 
-            marker.bindPopup(`
+                marker.bindPopup(`
                 <div style="min-width:220px;">
                     <h3 style="margin:0 0 8px 0; font-size:16px;">
                         ${type === "from" ? "Origine" : "Destinazione"}
@@ -563,71 +542,71 @@ async function searchAddress(query, type) {
                 </div>
             `);
 
-            marker.on("click", () => {
-                setSelectedAddress(type, item, card);
+                marker.on("click", () => {
+                    setSelectedAddress(type, item, card);
+                });
+
+                card.addEventListener("click", () => {
+                    textInput.value = item.label;
+                    setSelectedAddress(type, item, card);
+                });
+
+                resultsContainer.appendChild(card);
+
+                if (type === "from") {
+                    fromSearchMarkers.push(marker);
+                } else {
+                    toSearchMarkers.push(marker);
+                }
+
+                bounds.push([item.lat, item.lon]);
             });
 
-            card.addEventListener("click", () => {
-                textInput.value = item.label;
-                setSelectedAddress(type, item, card);
-            });
-
-            resultsContainer.appendChild(card);
-
-            if (type === "from") {
-                fromSearchMarkers.push(marker);
-            } else {
-                toSearchMarkers.push(marker);
+            if (bounds.length > 0) {
+                addressMap.fitBounds(bounds, { padding: [30, 30] });
             }
 
-            bounds.push([item.lat, item.lon]);
+        } catch (err) {
+            resultsContainer.innerHTML = "<div class='status-message error'>Errore durante la ricerca.</div>";
+            openResults(type);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        initAddressMap();
+
+        setupModeToggle("from_mode", "from_manual_wrapper", "from_favourite_wrapper", "from_save_wrapper");
+        setupModeToggle("to_mode", "to_manual_wrapper", "to_favourite_wrapper", "to_save_wrapper");
+
+        document.getElementById("from_search_btn").addEventListener("click", function () {
+            searchAddress(document.getElementById("from_query").value, "from");
         });
 
-        if (bounds.length > 0) {
-            addressMap.fitBounds(bounds, { padding: [30, 30] });
-        }
+        document.getElementById("to_search_btn").addEventListener("click", function () {
+            searchAddress(document.getElementById("to_query").value, "to");
+        });
 
-    } catch (err) {
-        resultsContainer.innerHTML = "<div class='status-message error'>Errore durante la ricerca.</div>";
-        openResults(type);
-    }
-}
+        document.getElementById("from_query").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchAddress(this.value, "from");
+            }
+        });
 
-document.addEventListener("DOMContentLoaded", function () {
-    initAddressMap();
+        document.getElementById("to_query").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                searchAddress(this.value, "to");
+            }
+        });
 
-    setupModeToggle("from_mode", "from_manual_wrapper", "from_favourite_wrapper", "from_save_wrapper");
-    setupModeToggle("to_mode", "to_manual_wrapper", "to_favourite_wrapper", "to_save_wrapper");
+        document.getElementById("from_favourite").addEventListener("change", function () {
+            setSelectedFavourite("from");
+        });
 
-    document.getElementById("from_search_btn").addEventListener("click", function () {
-        searchAddress(document.getElementById("from_query").value, "from");
+        document.getElementById("to_favourite").addEventListener("change", function () {
+            setSelectedFavourite("to");
+        });
     });
-
-    document.getElementById("to_search_btn").addEventListener("click", function () {
-        searchAddress(document.getElementById("to_query").value, "to");
-    });
-
-    document.getElementById("from_query").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            searchAddress(this.value, "from");
-        }
-    });
-
-    document.getElementById("to_query").addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            searchAddress(this.value, "to");
-        }
-    });
-
-    document.getElementById("from_favourite").addEventListener("change", function () {
-        setSelectedFavourite("from");
-    });
-
-    document.getElementById("to_favourite").addEventListener("change", function () {
-        setSelectedFavourite("to");
-    });
-});
 </script>
 {% endblock %}

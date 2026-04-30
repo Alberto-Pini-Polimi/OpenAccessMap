@@ -86,12 +86,12 @@
                 </span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">DateTime</span>
-                <span>{{ variables["dateTime"] }}</span>
+                <span class="summary-label">Wheelchair Accessible</span>
+                <span>{{ "Yes" if variables["wheelchair"] else "No" }}</span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">Search window</span>
-                <span>{{ variables["searchWindow"] }}</span>
+                <span class="summary-label">Only on Foot</span>
+                <span>{{ "Yes" if variables["on_foot"] else "No" }}</span>
             </div>
         </div>
     </section>

@@ -492,12 +492,15 @@ def dashboard():
             # =========================
             variables["from"] = from_obj
             variables["to"] = to_obj
-            variables["dateTime"] = request.form.get("date_time") or now_utc_iso()
-            variables["arriveBy"] = request.form.get("arrive_by") == "on"
+            
+            if request.form.get("on_foot") == "on":
+                variables["modes"]["transportModes"] = []
+                
             variables["wheelchair"] = request.form.get("wheelchair") == "on"
 
-            search_window = request.form.get("search_window", "40").strip()
-            variables["searchWindow"] = int(search_window) if search_window.isdigit() else 40
+            # additional fixed parameters
+            variables["searchWindow"] = 40
+            variables["dateTime"] = now_utc_iso()
 
             # Prima di fare il routing aspettiamo che OTP sia disponibile
             otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)
