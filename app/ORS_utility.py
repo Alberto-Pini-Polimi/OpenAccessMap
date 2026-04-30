@@ -265,7 +265,7 @@ def caricaElementiDaJSON(directoryDatiORS, bbox, wheelchair=False):
                         if bbox[0] <= elemento["coordinateCentroide"]["longitudine"] <= bbox[2] and bbox[1] <= elemento["coordinateCentroide"]["latitudine"] <= bbox[3]:
                             elemento_osm = Elemento(elemento)  # Crea l'elemento OSM
                             # includo tutte le infrastrutture (purché siano per qualcuno) e, se voglio wheelchair anche tutte le barriere e i facilitatori per una problematica motoria
-                            if elemento_osm.infrastruttura_per != [] or wheelchair and ("Morotia" in elemento_osm.barriera_per or "Motoria" in elemento_osm.facilitatore_per):
+                            if elemento_osm.infrastruttura_per != [] or wheelchair and ("Motoria" in elemento_osm.barriera_per or "Motoria" in elemento_osm.facilitatore_per):
                                 elementi.append(elemento_osm)  # E lo aggiunge agli altri
                                 aggiunti += 1
 

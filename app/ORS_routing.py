@@ -168,7 +168,7 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
     tutte_barriere_da_evitare = barriere
     for i in range(NUMERO_DI_ITERAZIONI):
         # calcolo il nuovo percorso mettendo 
-        percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine, avoid_polygons=tutte_barriere_da_evitare)[0])
+        percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine, elementi_da_evitare=tutte_barriere_da_evitare)[0])
         # dal percorso calcolato trovo tutte le barriere
         barriere, facilitatori, infrastrutture = percorso.trovaElementiSulPercorso(elementi_osm_personalizzati_caricati_dal_db, wheelchair=wheelchair)
         # le nuove barriere trovate le aggiungo per evitarle alla prossima iterazione
@@ -212,4 +212,4 @@ def computeBbox(pol):
     p = polyline.decode(pol)
     lats = [coord[0] for coord in p]
     lons = [coord[1] for coord in p]
-    return [min(lats), min(lons), max(lats), max(lons)]
+    return [min(lons), min(lats), max(lons), max(lats)]
