@@ -48,4 +48,4 @@ echo "✅ servizio avviato"
 
 echo ""
 echo "📜 I log di python-app verranno salvati in 'server.log' in background..."
-docker compose logs -f python-app > server.log 2>&1 &
+docker compose logs -f python-app >> server.log 2>&1 & # scrivo output in server.log (aggiungo solo a quello che c'è giá)
