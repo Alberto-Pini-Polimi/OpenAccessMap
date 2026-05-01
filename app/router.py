@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 import OTP_routing
 import ORS_routing
@@ -58,7 +59,7 @@ def route(variables):
 
     # add transit legs to the map
     for leg in transit_legs:
-        map = map.aggiungiMezzoPubblico(
+        map = map.aggiungiMezzoPubblico(  # a questi posso potenzialmente aggiungere le durate dei viaggi con tanto di orario di inizio e di fine
             inizio=leg.get("start_coordinates"),
             fine=leg.get("end_coordinates"),
             nome_inizio=leg.get("start_name"),
@@ -89,6 +90,9 @@ def extractWalkLegData(leg) -> Dict:
     end   = leg.get('toPlace') or {}
     start_coord = (start.get("latitude"), start.get("longitude"))
     end_coord   = (end.get("latitude")  , end.get("longitude")  )
+    start_time = leg.get("expectedStartTime")
+    end_time = leg.get("expectedEndTime")
+    duration = leg.get("duration")
     start_name  = start.get("name") or "?"
     end_name    = end.get("name") or "?"
     foot_polyline = leg.get("pointsOnLink").get("points")
@@ -96,6 +100,9 @@ def extractWalkLegData(leg) -> Dict:
     return {
         "start_coordinates": start_coord,
         "end_coordinates": end_coord,
+        "start_time": start_time,
+        "end_time": end_time,
+        "duration": duration,
         "start_name": start_name,
         "end_name": end_name,
         "track": foot_polyline
@@ -111,6 +118,9 @@ def extractTransitLegData(leg) -> Dict:
     end   = leg.get('toPlace') or {}
     start_coord = (start.get("latitude"), start.get("longitude"))
     end_coord   = (end.get("latitude")  , end.get("longitude")  )
+    start_time = leg.get("expectedStartTime")
+    end_time = leg.get("expectedEndTime")
+    duration = leg.get("duration")
     start_name  = start.get("name") or "?"
     end_name    = end.get("name") or "?"
 
@@ -124,6 +134,9 @@ def extractTransitLegData(leg) -> Dict:
     return {
         "start_coordinates": start_coord,
         "end_coordinates": end_coord,
+        "start_time": start_time,
+        "end_time": end_time,
+        "duration": duration,
         "start_name": start_name,
         "end_name": end_name,
         "type": modeOfTransit,
@@ -177,6 +190,11 @@ def log(patterns, wheelchair):
             distance = leg.get("pointsOnLink").get("distance")
             #length = leg.get("pointsOnLink").get("length")
 
+            # covert 2026-03-13T10:04:38+01:00 into 10:04 with propper fromisoformat function
+            start_time = datetime.fromisoformat(leg.get("expectedStartTime")).strftime("%H:%M")
+            end_time = datetime.fromisoformat(leg.get("expectedEndTime")).strftime("%H:%M")
+            duration = leg.get("duration")
+
             if mode == "FOOT":
                 stringaOutput += (
                     f"{j:>2}. "
@@ -190,7 +208,10 @@ def log(patterns, wheelchair):
                     "mode": mode,
                     "distance": distance,
                     "start_name": nome_partenza,
-                    "end_name": nome_arrivo
+                    "end_name": nome_arrivo,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "duration": duration
                 })
 
             else:
@@ -217,7 +238,10 @@ def log(patterns, wheelchair):
                     "distance": distance,
                     "start_name": nome_partenza,
                     "end_name": nome_arrivo,
-                    "line_name": linea_completa
+                    "line_name": linea_completa,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "duration": duration
                 })
     
     # print output string

@@ -213,7 +213,7 @@ def get_default_variables(wheelchair=True):
     return {
         "from": {"coordinates": {"latitude": 45.47437, "longitude": 9.183323}},
         "to": {"coordinates": {"latitude": 45.48535, "longitude": 9.20944}},
-        "dateTime": "2026-02-28T16:07:08.511Z",
+        "dateTime": now_utc_iso(), # ora di partenza (in formato ISO UTC) viene presa al momento della richiesta
         "modes": {
             "transportModes": [
                 {"transportMode": "bus"},
@@ -531,13 +531,18 @@ def dashboard():
             conn.close()
 
             # result.html incorpora la mappa vera tramite iframe verso /output-map
-            return render_template(
-                "result.html",
-                variables=variables,
-                result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
-                #resultHTML=format_result_text(resultText)
-                resultData=resultData
-            )
+            try:
+                return render_template(
+                    "result.html",
+                    variables=variables,
+                    result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
+                    #resultHTML=format_result_text(resultText)
+                    resultData=resultData
+                )
+            except Exception as e:
+                conn.close()
+                flash(f"Errore nel rendering della mappa: {e}", "error")
+                return render_template("dashboard.html", user=user, favourites=favourites)
 
         except ValueError as e:
             conn.close()

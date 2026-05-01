@@ -30,19 +30,27 @@ query trip(
       systemNotices { tag text }
       legs {
         mode
+        expectedStartTime
+        expectedEndTime
+        duration
         fromPlace {
             name
             latitude
             longitude
-            quay { id name latitude longitude }
         }
         toPlace {
             name
             latitude
             longitude
-            quay { id name latitude longitude }
         }
-        line { publicCode name id presentation { colour } }
+        line { 
+          publicCode 
+          name 
+          id 
+          presentation { 
+            colour 
+          } 
+        }
         pointsOnLink {
           points
           length
