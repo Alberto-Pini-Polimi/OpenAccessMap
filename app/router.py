@@ -200,6 +200,7 @@ def log(patterns, wheelchair):
                     f"{j:>2}. "
                     f"{'🚶':<5}"
                     f"{distance:>6} m   "
+                    f"{start_time} - {end_time}   "
                     f"{nome_partenza:<25} -> "
                     f"{nome_arrivo:<25}\n"
                 )
@@ -228,6 +229,7 @@ def log(patterns, wheelchair):
                     f"{j:>2}. "
                     f"{mode:<5}"
                     f"{distance:>6} m   "
+                    f"{start_time} - {end_time}   "
                     f"{nome_partenza:<25} -> "
                     f"{nome_arrivo:<25} "
                     f"{linea_completa:<30}\n"

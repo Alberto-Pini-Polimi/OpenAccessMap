@@ -6,7 +6,7 @@ import requests
 import sys
 import bcrypt
 import re
-from datetime import datetime, timezone
+import OTP_routing
 
 from flask import (
     Flask,
@@ -65,67 +65,6 @@ def attendi_otp(url_otp, timeout_minuti=10):
             sys.exit(1)
 
         time.sleep(10)
-
-
-def now_utc_iso() -> str:
-    """
-    Restituisce timestamp in formato ISO UTC compatibile con quello atteso da OTP.
-    Esempio: 2026-04-03T10:15:00.123Z
-    """
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
-
-
-def format_result_text(text: str) -> str:
-    """
-    Trasforma il testo degli itinerari in HTML strutturato:
-    - Converte "--- Itinerario #N ---" in tag h3
-    - Crea elenchi ordinati <ol> per le legs
-    - Rimuove i numeri duplicati dalle righe
-    """
-    lines = text.replace("-->", "&#8594;").split("\n") # rimpiazzo --> con la freccia in html e splitto sul new line
-    result = []
-    in_itinerary = False
-    
-    for line in lines:
-        # Titolo itinerario
-        match_title = re.match(r"--- Itinerario #(\d+) ---", line)
-        if match_title:
-            # Chiudi la lista precedente se era aperta
-            if in_itinerary:
-                result.append("</ol>")
-            num = match_title.group(1)
-            result.append(f"<h3>{num}° Itinerario</h3>")
-            in_itinerary = True
-            continue
-        
-        # Info del viaggio (generalized cost, durata)
-        if line.startswith("Generalized cost:"):
-            result.append(f"<p>{line}</p>")
-            result.append("<ol>")
-            continue
-        
-        # Legs (elementi con tab e numero)
-        if line.startswith("\t"):
-            # Rimuovi il tab iniziale, poi rimuovi il numero duplicato (es. "1. ")
-            leg_content = line.lstrip("\t")
-            # Rimuove il pattern "N. " dove N è uno o più cifre
-            leg_content = re.sub(r"^\d+\.\s+", "", leg_content)
-            result.append(f"<li>{leg_content}</li>")
-            continue
-        
-        # Linee vuote
-        if line.strip() == "":
-            continue
-        
-        # Altre linee (se ce ne sono)
-        if line.strip():
-            result.append(f"<p>{line}</p>")
-    
-    # Chiudi l'ultima lista se era aperta
-    if in_itinerary:
-        result.append("</ol>")
-    
-    return "\n".join(result)
 
 
 # =========================
@@ -203,31 +142,6 @@ def point_from_favourite(fav):
             "latitude": fav["latitude"],
             "longitude": fav["longitude"],
         }
-    }
-
-
-def get_default_variables(wheelchair=True):
-    """
-    Payload base per OTP da sovrascrivere.
-    """
-    return {
-        "from": {"coordinates": {"latitude": 45.47437, "longitude": 9.183323}},
-        "to": {"coordinates": {"latitude": 45.48535, "longitude": 9.20944}},
-        "dateTime": now_utc_iso(), # ora di partenza (in formato ISO UTC) viene presa al momento della richiesta
-        "modes": {
-            "transportModes": [
-                {"transportMode": "bus"},
-                {"transportMode": "metro"},
-                {"transportMode": "tram"},
-                {"transportMode": "rail"},
-            ],
-            "accessMode": "foot",
-            "egressMode": "foot",
-            "directMode": "foot",
-        },
-        "wheelchair": wheelchair,
-        "arriveBy": False,
-        "searchWindow": 40,
     }
 
 
@@ -425,7 +339,6 @@ def dashboard():
 
     if request.method == "POST":
         try:
-            variables = get_default_variables(wheelchair=True)
 
             # =========================
             # ORIGINE
@@ -490,6 +403,9 @@ def dashboard():
             # =========================
             # COMPLETAMENTO PAYLOAD OTP
             # =========================
+
+            variables = OTP_routing.get_default_variables()
+            
             variables["from"] = from_obj
             variables["to"] = to_obj
             
@@ -497,10 +413,6 @@ def dashboard():
                 variables["modes"]["transportModes"] = []
                 
             variables["wheelchair"] = request.form.get("wheelchair") == "on"
-
-            # additional fixed parameters
-            variables["searchWindow"] = 40
-            variables["dateTime"] = now_utc_iso()
 
             # Prima di fare il routing aspettiamo che OTP sia disponibile
             otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)
@@ -536,7 +448,6 @@ def dashboard():
                     "result.html",
                     variables=variables,
                     result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
-                    #resultHTML=format_result_text(resultText)
                     resultData=resultData
                 )
             except Exception as e:

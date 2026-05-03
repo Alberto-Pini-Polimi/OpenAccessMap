@@ -1,5 +1,8 @@
+import json
 import os
 import requests
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 URL = os.getenv("OTP_URL", "http://localhost:8080/otp/transmodel/v3")
 HEADERS = {"Content-Type": "application/json"}
@@ -12,7 +15,8 @@ query trip(
   $modes: Modes,
   $wheelchair: Boolean,
   $searchWindow: Int,
-  $arriveBy: Boolean
+  $arriveBy: Boolean,
+  $timetableView: Boolean
 ) {
   trip(
     dateTime: $dateTime,
@@ -21,7 +25,8 @@ query trip(
     modes: $modes,
     wheelchairAccessible: $wheelchair,
     searchWindow: $searchWindow,
-    arriveBy: $arriveBy
+    arriveBy: $arriveBy,
+    timetableView: $timetableView
   ) {
     tripPatterns {
       duration
@@ -62,35 +67,42 @@ query trip(
 }
 """
 
-# ALTRE FUNZIONI
 
-# def sign_up(users: dict) -> str | None:
-#     username = input("Scegli username: ").strip()
-#     if not username:
-#         print("Username vuoto.")
-#         return None
-#     if username in users:
-#         print("Username già esistente.")
-#         return None
-#     users[username] = {"favorite": None}
-#     print("Registrazione OK.")
-#     return username
+def get_now_local_iso():
+    milan_tz = ZoneInfo("Europe/Rome")
+    now = datetime.now(milan_tz)
 
-# def sign_in(users: dict) -> str | None:
-#     username = input("Username: ").strip()
-#     if username not in users:
-#         print("Utente non trovato.")
-#         return None
-#     print("Login OK.")
-#     return username
+    # Formatta in ISO 8601 UTC (OTP richiede UTC)
+    # Converti a UTC per evitare problemi di interpretazione del timezone
+    # Risultato es: '2026-05-03T13:50:00Z' (UTC, 2 ore prima di Milano)
+    now_utc = now.astimezone(timezone.utc)
+    return now_utc.replace(microsecond=0, tzinfo=timezone.utc).isoformat()
 
-# def set_favorite(users: dict, username: str, from_obj: dict, to_obj: dict) -> None:
-#     users[username]["favorite"] = {"from": from_obj, "to": to_obj}
-
-
-
-
-
+# used by main.py to build the payload for OTP
+def get_default_variables():
+    """
+    Payload base per OTP da sovrascrivere.
+    """
+    return {
+        "from": {"coordinates": {"latitude": 45.47437, "longitude": 9.183323}}, # queste sono solo coordinate di default, verranno sovrascritte da main.py
+        "to": {"coordinates": {"latitude": 45.48535, "longitude": 9.20944}},
+        "dateTime": get_now_local_iso(), # ora di partenza (in formato ISO locale) viene presa al momento della richiesta
+        "timetableView": False,
+        "arriveBy": False, # alla destinazione ci arrivo quando voglio ma il trip parte da "dateTime"
+        "searchWindow": 40,
+        "modes": {
+            "transportModes": [
+                {"transportMode": "bus"},
+                {"transportMode": "metro"},
+                {"transportMode": "tram"},
+                {"transportMode": "rail"},
+            ],
+            "accessMode": "foot",
+            "egressMode": "foot",
+            "directMode": "foot",
+        },
+        "wheelchair": False,
+    }
 
 def extractLegs(patterns):
     """
@@ -130,11 +142,28 @@ def route_OTP(variables, numberOfPatterns=2):
         print("Nessun tripPattern trovato.")
         return None
 
-    # Ordina i patterns per generalizedCost (costo generale) e prendi i top 3 per debug
+    # Filtra i pattern marcati da OTP come "outside-search-window"
+    # (es. corse notturne con costo basso ma fuori dalla finestra di ricerca)
+    valid_patterns = [
+        p for p in patterns
+        if not any(
+            n.get("tag") == "outside-search-window"
+            for n in (p.get("systemNotices") or [])
+        )
+    ]
+    if not valid_patterns:
+        print("Nessun tripPattern valido dopo il filtro outside-search-window.")
+        return None
+
+    # Ordina i patterns per generalizedCost (costo generale) e prendi i migliori N
     ordered_patterns = sorted(
-        patterns,
+        valid_patterns,
         key=lambda p: p.get("generalizedCost") if p.get("generalizedCost") is not None else float("inf")
-    )[:numberOfPatterns] # prendo i due migliori pattern
+    )[:numberOfPatterns]
+
+
+    # print the query with variables for debug
+    print("\n=== VARIABLES SENT TO OTP ===\n", json.dumps({"query": QUERY, "variables": variables, "result": responce_data}))
 
     return ordered_patterns
 
