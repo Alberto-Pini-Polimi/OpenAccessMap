@@ -30,7 +30,7 @@ def route(variables):
     wheelchair = variables["wheelchair"]
 
     # logs calculated patterns:
-    outputData = log(otp_patterns, wheelchair)
+    outputData = log(otp_patterns)
 
     # =================================
     # |  Working on OTP output part   |
@@ -91,8 +91,8 @@ def extractWalkLegData(leg) -> Dict:
     end   = leg.get('toPlace') or {}
     start_coord = (start.get("latitude"), start.get("longitude"))
     end_coord   = (end.get("latitude")  , end.get("longitude")  )
-    start_time = leg.get("expectedStartTime")
-    end_time = leg.get("expectedEndTime")
+    start_time = leg.get('expectedStartTime') or leg.get('startTime')
+    end_time = leg.get('expectedEndTime') or leg.get('endTime')
     duration = leg.get("duration")
     start_name  = start.get("name") or "?"
     end_name    = end.get("name") or "?"
@@ -119,8 +119,8 @@ def extractTransitLegData(leg) -> Dict:
     end   = leg.get('toPlace') or {}
     start_coord = (start.get("latitude"), start.get("longitude"))
     end_coord   = (end.get("latitude")  , end.get("longitude")  )
-    start_time = leg.get("expectedStartTime")
-    end_time = leg.get("expectedEndTime")
+    start_time = leg.get("expectedStartTime") or leg.get("startTime")
+    end_time = leg.get("expectedEndTime") or leg.get("endTime")
     duration = leg.get("duration")
     start_name  = start.get("name") or "?"
     end_name    = end.get("name") or "?"
@@ -160,7 +160,7 @@ def extractTransitLegData(leg) -> Dict:
 def deduplicatePatterns(patterns):
     return patterns
 
-def log(patterns, wheelchair):
+def log(patterns):
 
     outputData = []
 
@@ -192,8 +192,10 @@ def log(patterns, wheelchair):
             #length = leg.get("pointsOnLink").get("length")
 
             # covert 2026-03-13T10:04:38+01:00 into 10:04 with propper fromisoformat function
-            start_time = datetime.fromisoformat(leg.get("expectedStartTime")).strftime("%H:%M")
-            end_time = datetime.fromisoformat(leg.get("expectedEndTime")).strftime("%H:%M")
+            _raw_start = leg.get("expectedStartTime")
+            _raw_end   = leg.get("expectedEndTime")
+            start_time = datetime.fromisoformat(_raw_start).strftime("%H:%M") if isinstance(_raw_start, str) else "?"
+            end_time   = datetime.fromisoformat(_raw_end).strftime("%H:%M")   if isinstance(_raw_end,   str) else "?"
             duration = leg.get("duration")
 
             if mode == "FOOT":

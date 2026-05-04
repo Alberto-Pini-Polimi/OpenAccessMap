@@ -50,11 +50,12 @@
                         {% endif %}
                     </td>
 
-                    <td> {{ (leg["duration"]|int // 60) }}:{{ '%02d' % (leg["duration"]|int % 60) }} min ({{
-                        leg["distance"] }} m) </td>
+                    <td> {{ leg["start_time"] }} - {{ leg["end_time"] }}
+                        ({{ (leg["duration"]|int // 60) }}:{{ '%02d' % (leg["duration"]|int % 60) }} min)
+                    </td>
 
-                    <td>{{ leg["start_name"] }} @ {{ leg["start_time"]}}</td>
-                    <td>{{ leg["end_name"] }} @ {{ leg["end_time"] }}</td>
+                    <td>{{ leg["start_name"] }}</td>
+                    <td>{{ leg["end_name"] }}</td>
 
                     <td>
                         {% if leg["line_name"] is not none %}

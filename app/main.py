@@ -413,6 +413,7 @@ def dashboard():
                 variables["modes"]["transportModes"] = []
                 
             variables["wheelchair"] = request.form.get("wheelchair") == "on"
+            variables["walkSpeed"] = float(request.form.get("speed")) / 3.6 # convert km/h to m/s
 
             # Prima di fare il routing aspettiamo che OTP sia disponibile
             otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)

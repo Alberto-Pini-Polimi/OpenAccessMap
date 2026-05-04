@@ -16,6 +16,7 @@ query trip(
   $wheelchair: Boolean,
   $searchWindow: Int,
   $arriveBy: Boolean,
+  $walkSpeed: Float,
   $timetableView: Boolean
 ) {
   trip(
@@ -26,6 +27,7 @@ query trip(
     wheelchairAccessible: $wheelchair,
     searchWindow: $searchWindow,
     arriveBy: $arriveBy,
+    walkSpeed: $walkSpeed,
     timetableView: $timetableView
   ) {
     tripPatterns {
@@ -42,11 +44,13 @@ query trip(
             name
             latitude
             longitude
+            quay { id name latitude longitude }
         }
         toPlace {
             name
             latitude
             longitude
+            quay { id name latitude longitude }
         }
         line { 
           publicCode 
@@ -102,6 +106,7 @@ def get_default_variables():
             "directMode": "foot",
         },
         "wheelchair": False,
+        "walkSpeed": 1.3 # m/s, velocità di camminata impostata a 1.3 m/s (4.68 km/h), equivalente al passo medio di un essere umano adulto in piano.  
     }
 
 def extractLegs(patterns):
@@ -163,7 +168,7 @@ def route_OTP(variables, numberOfPatterns=2):
 
 
     # print the query with variables for debug
-    print("\n=== VARIABLES SENT TO OTP ===\n", json.dumps({"query": QUERY, "variables": variables, "result": responce_data}))
+    #print("\n=== VARIABLES SENT TO OTP ===\n", json.dumps({"query": QUERY, "variables": variables, "result": responce_data}))
 
     return ordered_patterns
 
