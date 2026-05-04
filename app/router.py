@@ -66,7 +66,8 @@ def route(variables):
             nome_fine=leg.get("end_name"),
             tipologia_mezzo=leg.get("type"),
             nome_linea=leg.get("line_name"),
-            traccia=leg.get("track")
+            traccia=leg.get("track"),
+            dati_accessibilita=wheelchair # se wheelchair = True, devo fornire i dati sull'accessibilità delle stazioni
         )
     
     # add foot legs to the map

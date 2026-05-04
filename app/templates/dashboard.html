@@ -118,14 +118,20 @@
                 <h2>Parametri</h2>
 
                 <label class="checkbox">
-                    <input type="checkbox" name="wheelchair">
-                    Wheelchair?
+                    <input type="checkbox" name="wheelchair" checked="true">
+                    Percorso in sedia a rotelle?
                 </label>
 
                 <label class="checkbox">
                     <input type="checkbox" name="on_foot">
-                    No Public Transport? (only on foot)
+                    Solo percorso a piedi?
                 </label>
+
+                <div class="slider-container">
+                    <label for="speed">Velocità di camminata:</label>
+                    <input type="range" id="speed" name="speed" min="0" max="10" value="5">
+                    <span class="speed-label"><span id="speed-value">5</span> km/h</span>
+                </div>
             </section>
 
             <section class="panel">
@@ -268,6 +274,75 @@
         border: 3px solid #ffffff;
         box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25);
     }
+
+    /* Contenitore principale per allineare tutto in linea */
+    .slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        /* Spazio tra gli elementi */
+        font-family: sans-serif;
+        color: #e0e0e0;
+        background-color: #1e2128;
+        /* Sfondo scuro come nell'immagine */
+        padding: 15px 20px;
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    /* Reset base dello slider */
+    input[type=range] {
+        -webkit-appearance: none;
+        width: 150px;
+        background: transparent;
+        --range-progress: 50%;
+        /* Variabile CSS che aggiorneremo con JS */
+    }
+
+    input[type=range]:focus {
+        outline: none;
+    }
+
+    /* Stile della traccia (Chrome, Safari, Edge) */
+    input[type=range]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        /* Usa la variabile CSS per creare l'effetto di riempimento blu */
+        background: linear-gradient(to right, #007bff var(--range-progress), #e0e0e0 var(--range-progress));
+        border-radius: 4px;
+    }
+
+    /* Stile del pallino (Chrome, Safari, Edge) */
+    input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #007bff;
+        cursor: pointer;
+        margin-top: -5px;
+        /* Centra il pallino sulla traccia (altezza traccia 6px - altezza pallino 16px) / 2 */
+    }
+
+    /* Stile della traccia (Firefox) */
+    input[type=range]::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        cursor: pointer;
+        background: linear-gradient(to right, #007bff var(--range-progress), #e0e0e0 var(--range-progress));
+        border-radius: 4px;
+    }
+
+    /* Stile del pallino (Firefox) */
+    input[type=range]::-moz-range-thumb {
+        height: 16px;
+        width: 16px;
+        border-radius: 50%;
+        background: #007bff;
+        cursor: pointer;
+        border: none;
+    }
 </style>
 
 <script>
@@ -278,6 +353,9 @@
     let selectedToMarker = null;
     let selectedFrom = null;
     let selectedTo = null;
+
+    const speedInput = document.getElementById('speed');
+    const speedValue = document.getElementById('speed-value');
 
     function initAddressMap() {
         addressMap = L.map("address-map").setView([45.4642, 9.1900], 12);
@@ -608,5 +686,26 @@
             setSelectedFavourite("to");
         });
     });
+
+    function updateSlider() {
+        const val = speedInput.value;
+        const min = speedInput.min || 0;
+        const max = speedInput.max || 10;
+
+        // Calcola la percentuale per il riempimento della barra blu
+        const percentage = ((val - min) / (max - min)) * 100;
+
+        // Aggiorna il testo
+        speedValue.textContent = val;
+
+        // Aggiorna la variabile CSS per il colore della traccia
+        speedInput.style.setProperty('--range-progress', `${percentage}%`);
+    }
+
+    // Ascolta i cambiamenti mentre si trascina il cursore (input) e al rilascio (change)
+    speedInput.addEventListener('input', updateSlider);
+
+    // Esegui la funzione all'avvio per impostare lo stato iniziale (50%)
+    updateSlider();
 </script>
 {% endblock %}

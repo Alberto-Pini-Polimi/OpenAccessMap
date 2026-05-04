@@ -153,7 +153,7 @@ class Map:
         for barriera in barriere:
             self.aggiungiElemento(barriera, colore="red", icona="warning-sign")
 
-    def aggiungiMezzoPubblico(self, inizio, fine, nome_inizio, nome_fine, tipologia_mezzo, nome_linea, traccia):
+    def aggiungiMezzoPubblico(self, inizio, fine, nome_inizio, nome_fine, tipologia_mezzo, nome_linea, traccia, dati_accessibilita=True):
         """
         disegna la tratta dei mezzi pubblici tra inizio e fine,
         se in futuro si useranno piu mappe si potra passare quella desiderata
@@ -200,28 +200,33 @@ class Map:
             tooltip=f'Scendi da "{linea}"'
         )
 
-        # prendo la lista di tutte le stazioni che sono diventate inaccessibili dall'ultima 
-        # build del graph.obj questa lista deve essere aggiornata periodicamente
-        stationsBecomeUnaccessible = []
-        if tipologia_mezzo == "metro":
-            try:
-                with open(base_directory / "data" / "OTP_data" / "inaccessible_stations_till_last_GTFSzip_file_update.txt", "r", encoding='utf-8') as recentlyInaccessibleStationsFile:
-                    for stazione in recentlyInaccessibleStationsFile:
-                        stationsBecomeUnaccessible.append(stazione.strip())
-            except FileNotFoundError:
-                print("manca il file delle stazioni diventate inaccessibili dall'ultima build!")
+        messaggioSalita = f'⬆️ Sali su "{linea}" a "{nome_inizio}"'
+        messaggioDiscesa = f'⬇️ Scendi da "{linea}" a "{nome_fine}"'
 
-        # e ora devo capire se le stazioni che sto considerando sono incluse tra quelle diventate inaccessibili
-        # per farlo mi serve sapere il nome della stazione!
-        if str(nome_inizio) in stationsBecomeUnaccessible:
-            messaggioSalita = f'⬆️ Sali su "{linea} a {nome_inizio}<br>ATTENZIONE! in questa stazione non si garantisce completa accessibilità"'
-        else:
-            messaggioSalita = f'⬆️ Sali su "{linea} a {nome_inizio}<br>In questo momento la stazione è completamente accessibile!"'
+        # se voglio aggiungere i dati dell'accessibilità
+        if dati_accessibilita:
+            # prendo la lista di tutte le stazioni che sono diventate inaccessibili dall'ultima 
+            # build del graph.obj questa lista deve essere aggiornata periodicamente
+            stationsBecomeUnaccessible = []
+            if tipologia_mezzo == "metro":
+                try:
+                    with open(base_directory / "data" / "OTP_data" / "inaccessible_stations_till_last_GTFSzip_file_update.txt", "r", encoding='utf-8') as recentlyInaccessibleStationsFile:
+                        for stazione in recentlyInaccessibleStationsFile:
+                            stationsBecomeUnaccessible.append(stazione.strip())
+                except FileNotFoundError:
+                    print("manca il file delle stazioni diventate inaccessibili dall'ultima build!")
 
-        if str(nome_fine) in stationsBecomeUnaccessible:
-            messaggioDiscesa = f'⬇️ Scendi da "{linea} a {nome_fine}<br>ATTENZIONE! in questa stazione non si garantisce completa accessibilità"'
-        else:
-            messaggioDiscesa = f'⬇️ Scendi da "{linea} a {nome_fine}<br>In questo momento la stazione è completamente accessibile!"'
+            # e ora devo capire se le stazioni che sto considerando sono incluse tra quelle diventate inaccessibili
+            # per farlo mi serve sapere il nome della stazione!
+            if str(nome_inizio) in stationsBecomeUnaccessible:
+                messaggioSalita += f'<br>ATTENZIONE! In questa stazione non si garantisce completa accessibilità'
+            else:
+                messaggioSalita += f'<br>Stazione accessibile!'
+
+            if str(nome_fine) in stationsBecomeUnaccessible:
+                messaggioDiscesa += f'<br>ATTENZIONE! In questa stazione non si garantisce completa accessibilità'
+            else:
+                messaggioDiscesa += f'<br>Stazione accessibile!'
 
         # helper per label sempre visibili
         def _div_label(text, dx_px=10, dy_px=-10, w=320, h=28):
