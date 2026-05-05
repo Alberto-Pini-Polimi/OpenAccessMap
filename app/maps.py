@@ -1,8 +1,10 @@
 import folium
 from pathlib import Path
 import polyline
+import re
 
 base_directory = Path(__file__).resolve().parent.parent
+ICONS_DIR = Path(__file__).resolve().parent / "templates" / "icons"
 
 class Map:
 
@@ -111,9 +113,50 @@ class Map:
         return f"{ore} h : {minuti} min : {secondi_rimanenti} sec"
     
 
+    # helper per creare un'icona SVG personalizzata da file
+    def _creaIconaSVG(self, nome_file, size=40, anchor=None):
+        """
+        Legge un file SVG da ICONS_DIR e restituisce un folium.DivIcon.
+
+        nome_file: nome del file senza estensione (es. "barriera")
+        size:      larghezza in pixel dell'icona renderizzata (default 40)
+        anchor:    (x, y) del punto di ancoraggio rispetto al top-left del div;
+                   default = centro-basso (punta del pin).
+        """
+        svg_path = ICONS_DIR / f"{nome_file}.svg"
+        svg_content = svg_path.read_text(encoding="utf-8")
+
+        # Rimuove gli attributi width/height fissi dal tag <svg> e li sostituisce con 100%/100%
+        # così il div CSS controlla la dimensione effettiva.
+        # Cattura l'intero tag <svg ...>, rimuove width/height, poi reinietta width="100%" height="100%"
+        def _strip_svg_size(m):
+            tag = m.group(0)
+            tag = re.sub(r'\s+width="[^"]*"', '', tag)
+            tag = re.sub(r'\s+height="[^"]*"', '', tag)
+            tag = tag.replace('<svg', '<svg width="100%" height="100%"', 1)
+            return tag
+        svg_content = re.sub(r'<svg\b[^>]*>', _strip_svg_size, svg_content, count=1)
+
+        # Il viewBox degli SVG del progetto è "0 0 100 140": ratio altezza/larghezza = 1.4
+        # → l'altezza renderizzata = size * 1.4; la punta del pin è al centro-basso.
+        rendered_h = size * 1.4
+        if anchor is None:
+            anchor = (size / 2, rendered_h)
+
+        return folium.DivIcon(
+            html=f'<div style="width:{size}px;height:{rendered_h}px;overflow:visible">{svg_content}</div>',
+            icon_size=(size, rendered_h),
+            icon_anchor=anchor
+        )
+
     # per aggiungere un elemento OSM con tanto di popup nella mappa e link a street view!
-    def aggiungiElemento(self, elemento, colore="red", icona="warning-sign"):
-        """Aggiunge un ElementoOSM (Barriera o Facilitatore) alla mappa"""
+    def aggiungiElemento(self, elemento, colore="red", icona="warning-sign", svg=None):
+        """
+        Aggiunge un ElementoOSM (Barriera o Facilitatore) alla mappa.
+
+        svg: nome del file SVG (senza .svg) in templates/icons/ da usare come icona;
+             se None, usa l'icona glyphicon standard (colore + icona).
+        """
         
         punto = (elemento.coordinate_centroide.get("latitudine"), elemento.coordinate_centroide.get("longitudine"))
         
@@ -131,11 +174,14 @@ class Map:
             max_width=300
         )
 
+        # scelgo l'icona: SVG personalizzata oppure glyphicon standard
+        icona_finale = self._creaIconaSVG(svg) if svg else icona
+
         # e aggiungo il marker
         self.aggiungiMarker(
             punto=punto,
             colore=colore,
-            icona=icona,
+            icona=icona_finale,
             tooltip=elemento.nome,
             popup=popup
         )
@@ -145,13 +191,13 @@ class Map:
 
         # Aggiungi le infrastrutture
         for infrastruttura in infrastrutture:
-            self.aggiungiElemento(infrastruttura, colore="blue", icona="plus-sign")
+            self.aggiungiElemento(infrastruttura, svg="infrastruttura")
         # Aggiungi i facilitatori
         for facilitatore in facilitatori:
-            self.aggiungiElemento(facilitatore, colore="green", icona="ok-sign")
+            self.aggiungiElemento(facilitatore, svg="facilitatore")
         # Aggiungi le barriere
         for barriera in barriere:
-            self.aggiungiElemento(barriera, colore="red", icona="warning-sign")
+            self.aggiungiElemento(barriera, svg="barriera")
 
     def aggiungiMezzoPubblico(self, inizio, fine, nome_inizio, nome_fine, tipologia_mezzo, nome_linea, traccia, dati_accessibilita=True):
         """
@@ -189,14 +235,14 @@ class Map:
         # aggiungo il marker per la salita sul mezzo
         self.aggiungiMarker(
             punto=start,
-            icona=folium.Icon(color="orange", icon="arrow-up"),
+            icona=self._creaIconaSVG("salire"), #folium.Icon(color="orange", icon="arrow-up"),
             tooltip=f'Sali su "{linea}"'
         )
 
         # aggiungo il marker per l'usciata dal mezzo
         self.aggiungiMarker(
             punto=end,
-            icona=folium.Icon(color="blue", icon="arrow-down"),
+            icona=self._creaIconaSVG("scendere"), #folium.Icon(color="blue", icon="arrow-down"),
             tooltip=f'Scendi da "{linea}"'
         )
 
