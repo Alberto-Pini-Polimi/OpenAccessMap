@@ -7,7 +7,7 @@ import maps
 
 # Main Function that main.py (server) calls
 # then this calls route_OTP() and route_ORS()
-def route(variables):
+def route(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
 
     # creating empty folium map to return with the result
     map = maps.Map()
@@ -17,7 +17,15 @@ def route(variables):
     # ===============
 
     # first I call OTP with all the variables
-    otp_patterns = OTP_routing.route_OTP(variables, numberOfPatterns=1)
+    otp_patterns = OTP_routing.route_OTP(
+        from_obj         = from_obj,
+        to_obj           = to_obj,
+        on_foot          = on_foot,
+        wheelchair       = wheelchair,
+        walkSpeed        = walkSpeed,
+        numberOfPatterns = 1
+    )
+
     # check if no error occured
     if otp_patterns is None:
         # throw an error
@@ -26,11 +34,8 @@ def route(variables):
     if len(otp_patterns) > 1:
         otp_patterns = deduplicatePatterns(otp_patterns)
 
-    # variabile locale per capire se l'utente è in sedia a rotelle
-    wheelchair = variables["wheelchair"]
-
     # logs calculated patterns:
-    outputData = log(otp_patterns)
+    outputData = generateOutputDataForThePathSummary(otp_patterns, wheelchair)
 
     # =================================
     # |  Working on OTP output part   |
@@ -160,7 +165,7 @@ def extractTransitLegData(leg) -> Dict:
 def deduplicatePatterns(patterns):
     return patterns
 
-def log(patterns):
+def generateOutputDataForThePathSummary(patterns, wheelchair):
 
     outputData = []
 
@@ -201,7 +206,7 @@ def log(patterns):
             if mode == "FOOT":
                 stringaOutput += (
                     f"{j:>2}. "
-                    f"{'🚶':<5}"
+                    f"{'♿' if wheelchair else '🚶' :<5}"
                     f"{distance:>6} m   "
                     f"{start_time} - {end_time}   "
                     f"{nome_partenza:<25} -> "
@@ -254,12 +259,3 @@ def log(patterns):
 
     # return output data (to be rendered on the results.html page)
     return outputData
-
-# HELPER FUNCTIONS PER route()
-
-def format_coordinates(place: dict) -> str: #formatta coordinate
-    lat = place.get("latitude")
-    lon = place.get("longitude")
-    if lat is None or lon is None:
-        return "(?,?)"
-    return f"({lat:.6f},{lon:.6f})"

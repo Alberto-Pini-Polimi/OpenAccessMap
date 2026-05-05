@@ -1,4 +1,3 @@
-import json
 import os
 import requests
 from datetime import datetime, timezone
@@ -82,14 +81,10 @@ def get_now_local_iso():
     now_utc = now.astimezone(timezone.utc)
     return now_utc.replace(microsecond=0, tzinfo=timezone.utc).isoformat()
 
-# used by main.py to build the payload for OTP
-def get_default_variables():
-    """
-    Payload base per OTP da sovrascrivere.
-    """
-    return {
-        "from": {"coordinates": {"latitude": 45.47437, "longitude": 9.183323}}, # queste sono solo coordinate di default, verranno sovrascritte da main.py
-        "to": {"coordinates": {"latitude": 45.48535, "longitude": 9.20944}},
+def construct_variables(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
+    vars = {
+        "from": from_obj, # queste sono solo coordinate di default, verranno sovrascritte da main.py
+        "to": to_obj,
         "dateTime": get_now_local_iso(), # ora di partenza (in formato ISO locale) viene presa al momento della richiesta
         "timetableView": False,
         "arriveBy": False, # alla destinazione ci arrivo quando voglio ma il trip parte da "dateTime"
@@ -105,9 +100,14 @@ def get_default_variables():
             "egressMode": "foot",
             "directMode": "foot",
         },
-        "wheelchair": False,
-        "walkSpeed": 1.3 # m/s, velocità di camminata impostata a 1.3 m/s (4.68 km/h), equivalente al passo medio di un essere umano adulto in piano.  
+        "wheelchair": wheelchair,
+        "walkSpeed": walkSpeed # m/s, velocità di camminata impostata a 1.3 m/s (4.68 km/h), equivalente al passo medio di un essere umano adulto in piano.  
     }
+
+    if on_foot: # if user wants on_foot, I will not use public transport
+        vars["modes"]["transportModes"] = []
+
+    return vars
 
 def extractLegs(patterns):
     """
@@ -120,7 +120,10 @@ def extractLegs(patterns):
     legs = p.get("legs") or []
     return legs 
 
-def route_OTP(variables, numberOfPatterns=2):
+def route_OTP(from_obj, to_obj, on_foot, wheelchair, walkSpeed, numberOfPatterns=2):
+
+    # construct variables to pass to OTP
+    variables = construct_variables(from_obj, to_obj, on_foot, wheelchair, walkSpeed)
 
     # request to OTP
     otp_request = requests.post(

@@ -40,7 +40,11 @@
 
                     <td>
                         {% if leg["mode"] == "FOOT" %}
+                        {% if inputQueryVars["wheelchair"] %}
+                        ♿
+                        {% else %}
                         🚶 Piedi
+                        {% endif %}
                         {% elif leg["mode"] == "BUS" %}
                         🚌 Bus
                         {% elif leg["mode"] == "METRO" %}
@@ -70,35 +74,39 @@
         </table>
     </section>
 
-    {% if variables %}
+    {% if inputQueryVars %}
     <section class="panel" style="margin-top: 18px;">
-        <h2>Riepilogo</h2>
+        <h2>Input della Query</h2>
         <div class="summary-grid">
             <div class="summary-item">
-                <span class="summary-label">From</span>
+                <span class="summary-label">Da</span>
                 <span>
-                    {{ variables["from"]["coordinates"]["latitude"] }},
-                    {{ variables["from"]["coordinates"]["longitude"] }}
+                    {{ inputQueryVars["from_coordinates"]["latitude"] }},
+                    {{ inputQueryVars["from_coordinates"]["longitude"] }}
                 </span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">To</span>
+                <span class="summary-label">A</span>
                 <span>
-                    {{ variables["to"]["coordinates"]["latitude"] }},
-                    {{ variables["to"]["coordinates"]["longitude"] }}
+                    {{inputQueryVars["to_coordinates"]["latitude"] }},
+                    {{inputQueryVars["to_coordinates"]["longitude"] }}
                 </span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">Wheelchair Accessible</span>
-                <span>{{ "Yes" if variables["wheelchair"] else "No" }}</span>
+                <span class="summary-label">Percorso per sedie a rotelle?</span>
+                <span>{{ "Sì" if inputQueryVars["wheelchair"] else "No" }}</span>
             </div>
             <div class="summary-item">
-                <span class="summary-label">Only on Foot</span>
-                <span>{{ "Yes" if variables["on_foot"] else "No" }}</span>
+                <span class="summary-label">Percorso solo a piedi?</span>
+                <span>{{ "Sì" if inputQueryVars["on_foot"] else "No" }}</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-label">Velocità di spostamento</span>
+                <span>{{ inputQueryVars["speed"] }} km/h</span>
             </div>
             <div class="summary-item">
                 <span class="summary-label">Richiesta inviata alle ore (UTC)</span>
-                <span>{{ variables["dateTime"] }}</span>
+                <span>{{ inputQueryVars["dateTime"] }}</span>
             </div>
         </div>
     </section>

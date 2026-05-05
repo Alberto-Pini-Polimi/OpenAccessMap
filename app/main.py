@@ -1,3 +1,4 @@
+import OTP_routing
 import router
 import os
 import sqlite3
@@ -5,8 +6,6 @@ import time
 import requests
 import sys
 import bcrypt
-import re
-import OTP_routing
 
 from flask import (
     Flask,
@@ -404,17 +403,6 @@ def dashboard():
             # COMPLETAMENTO PAYLOAD OTP
             # =========================
 
-            variables = OTP_routing.get_default_variables()
-            
-            variables["from"] = from_obj
-            variables["to"] = to_obj
-            
-            if request.form.get("on_foot") == "on":
-                variables["modes"]["transportModes"] = []
-                
-            variables["wheelchair"] = request.form.get("wheelchair") == "on"
-            variables["walkSpeed"] = float(request.form.get("speed")) / 3.6 # convert km/h to m/s
-
             # Prima di fare il routing aspettiamo che OTP sia disponibile
             otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)
             if not otp_ready:
@@ -426,7 +414,13 @@ def dashboard():
             # PROVO A FARE IL ROUTING
             try:
                 # questo esegue OTP, divide in legs e aggiunge tutto alla mappa (i legs a piedi vengono calcolati di ORS)
-                resultMap, resultData = router.route(variables=variables) # resultMap è la mappa risultato 
+                resultMap, resultData = router.route(
+                    from_obj       = from_obj,
+                    to_obj         = to_obj,
+                    on_foot        = request.form.get("on_foot") == "on",
+                    wheelchair     = request.form.get("wheelchair") == "on",
+                    walkSpeed      = float(request.form.get("speed")) / 3.6 # convert km/h to m/s
+                )
 
             except ImportError as e:
                 conn.close()
@@ -447,7 +441,14 @@ def dashboard():
             try:
                 return render_template(
                     "result.html",
-                    variables=variables,
+                    inputQueryVars={
+                        "from_coordinates": from_obj.get("coordinates"),
+                        "to_coordinates": to_obj.get("coordinates"),
+                        "on_foot": request.form.get("on_foot") == "on",
+                        "wheelchair": request.form.get("wheelchair") == "on",
+                        "speed": float(request.form.get("speed")),
+                        "dateTime": OTP_routing.get_now_local_iso()
+                    },
                     result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
                     resultData=resultData
                 )
