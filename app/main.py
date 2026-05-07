@@ -394,6 +394,8 @@ def dashboard():
                     except sqlite3.IntegrityError:
                         flash("Label TO già esistente tra i preferiti.", "error")
 
+            # debug
+            print(f"\n\n{from_obj}\n\n{to_obj}\n\n")
             
             # =========================
             # ASPETTO OTP
@@ -431,7 +433,6 @@ def dashboard():
                 return render_template("dashboard.html", user=user, favourites=favourites)
             except Exception as e:
                 conn.close()
-                # Get detailed error information with traceback
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
                 error_details = ''.join(tb_lines)
@@ -474,6 +475,73 @@ def dashboard():
 
     conn.close()
     return render_template("dashboard.html", user=user, favourites=favourites)
+
+
+# Questo è per il prof
+@app.route("/debug-route")
+def debug_route():
+    """
+    Route di debug per generare rapidamente un percorso senza passare dalla form.
+    Utile in sviluppo per testare OTP e la generazione della mappa.
+    """
+
+    otp_ready = attendi_otp(OTP_URL, timeout_minuti=3)
+    if not otp_ready:
+        flash("OTP non è raggiungibile al momento.", "error")
+        return redirect(url_for("login"))
+
+
+
+    # path di debug che si vuole provare
+    debug_path_requested = request.args.get("path_id", type=int)
+
+    input = {}
+
+    if debug_path_requested == 1:
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.4725742, 'longitude': 9.1493046}},
+            "to_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+            "on_foot": False,
+            "wheelchair": True,
+            "speed": 5/3.6
+        }
+
+    try:
+
+        # faccio la richiesta...
+        resultMap, resultData = router.route(
+            from_obj   = input.from_obj,
+            to_obj     = input.to_obj,
+            on_foot    = input.on_foot,
+            wheelchair = input.wheelchair,
+            walkSpeed  = input.speed # in m/s
+        )
+        
+        # e ritorno il template di output
+        return render_template(
+            "result.html",
+            inputQueryVars={
+                "from_coordinates": input.from_obj.get("coordinates"),
+                "to_coordinates": input.to_obg.get("coordinates"),
+                "on_foot": input.on_foot,
+                "wheelchair": request.form.get("wheelchair") == "on",
+                "speed": float(request.form.get("speed")),
+                "dateTime": OTP_routing.get_now_local_iso()
+            },
+            result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
+            resultData=resultData
+        )
+    
+    except Exception as e:
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        error_details = ''.join(tb_lines)
+        print("=== ERROR DETAILS ===")
+        print(error_details)
+        return render_template("login.html")
+
+
+
 
 
 if __name__ == "__main__":
