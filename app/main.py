@@ -495,37 +495,90 @@ def debug_route():
     # path di debug che si vuole provare
     debug_path_requested = request.args.get("path_id", type=int)
 
-    input = {}
+    input = {
+        "from_obj": {'coordinates': {'latitude': 45.4725742, 'longitude': 9.1493046}},
+        "to_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+        "on_foot": False,
+        "wheelchair": True,
+        "speed": 5/3.6
+    }
 
-    if debug_path_requested == 1:
+    #     input = {
+    #         "from_obj": {'coordinates': {'latitude': 45.4725742, 'longitude': 9.1493046}},
+    #         "to_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+    #         "on_foot": False,
+    #         "wheelchair": True,
+    #         "speed": 5/3.6
+    #     }
+    # elif debug_path_requested == 2:
+    #     input = {
+    #         "from_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+    #         "to_obj": {'coordinates': {'latitude': 45.4782003, 'longitude': 9.123964}},
+    #         "on_foot": False,
+    #         "wheelchair": True,
+    #         "speed": 5/3.6
+    #     }
+    # elif debug_path_requested == 3:
+    #     input = {
+    #         "from_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+    #         "to_obj": {'coordinates': {'latitude': 45.4782003, 'longitude': 9.123964}},
+    #         "on_foot": True,
+    #         "wheelchair": True,
+    #         "speed": 3.5/3.6
+    #     }
+    # elif debug_path_requested == 4: # garibaldi - p.za leonardo mezzi e velocità normale
+    #     input = {
+    #         "from_obj": {'coordinates': {'latitude': 45.4835188, 'longitude': 9.1877146}},
+    #         "to_obj": {'coordinates': {'latitude': 45.4781421, 'longitude': 9.2248047}},
+    #         "on_foot": False,
+    #         "wheelchair": True,
+    #         "speed": 5/3.6
+    #     }
+    # elif debug_path_requested == 5: # garibaldi - p.za leonardo senza mezzi
+    #     input = {
+    #         "from_obj": {'coordinates': {'latitude': 45.4835188, 'longitude': 9.1877146}},
+    #         "to_obj": {'coordinates': {'latitude': 45.4781421, 'longitude': 9.2248047}},
+    #         "on_foot": True,
+    #         "wheelchair": True,
+    #         "speed": 5/3.6 # 2km/h
+    #     }
+    if debug_path_requested == 1: # davanti a centrale - media velocità
         input = {
-            "from_obj": {'coordinates': {'latitude': 45.4725742, 'longitude': 9.1493046}},
-            "to_obj": {'coordinates': {'latitude': 45.4529977, 'longitude': 9.2206282}},
+            "from_obj": {'coordinates': {'latitude': 45.487047, 'longitude': 9.1977011}},
+            "to_obj": {'coordinates': {'latitude': 45.480357, 'longitude': 9.2109589}},
             "on_foot": False,
             "wheelchair": True,
             "speed": 5/3.6
+        }
+    elif debug_path_requested == 2: # davanti a centrale - lenta
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.487047, 'longitude': 9.1977011}},
+            "to_obj": {'coordinates': {'latitude': 45.480357, 'longitude': 9.2109589}},
+            "on_foot": False,
+            "wheelchair": True,
+            "speed": 1/3.6
         }
 
     try:
 
         # faccio la richiesta...
         resultMap, resultData = router.route(
-            from_obj   = input.from_obj,
-            to_obj     = input.to_obj,
-            on_foot    = input.on_foot,
-            wheelchair = input.wheelchair,
-            walkSpeed  = input.speed # in m/s
+            from_obj   = input["from_obj"],
+            to_obj     = input["to_obj"],
+            on_foot    = input["on_foot"],
+            wheelchair = input["wheelchair"],
+            walkSpeed  = input["speed"] # in m/s
         )
         
         # e ritorno il template di output
         return render_template(
             "result.html",
             inputQueryVars={
-                "from_coordinates": input.from_obj.get("coordinates"),
-                "to_coordinates": input.to_obg.get("coordinates"),
-                "on_foot": input.on_foot,
-                "wheelchair": request.form.get("wheelchair") == "on",
-                "speed": float(request.form.get("speed")),
+                "from_coordinates": input["from_obj"]["coordinates"],
+                "to_coordinates": input["to_obj"]["coordinates"],
+                "on_foot": input["on_foot"],
+                "wheelchair": input["wheelchair"],
+                "speed": float(input["speed"]),
                 "dateTime": OTP_routing.get_now_local_iso()
             },
             result=resultMap.getMappaInHTML(), # converto la mappa da oggetto a pagina HTML da mettere in un iframe
