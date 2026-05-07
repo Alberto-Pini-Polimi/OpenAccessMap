@@ -1,3 +1,4 @@
+import requests
 import os
 import requests
 from datetime import datetime, timezone
@@ -33,6 +34,8 @@ query trip(
       duration
       distance
       generalizedCost
+      expectedStartTime
+      expectedEndTime
       systemNotices { tag text }
       legs {
         mode
@@ -70,7 +73,7 @@ query trip(
 }
 """
 
-
+# helper function for construct_variables()
 def get_now_local_iso():
     milan_tz = ZoneInfo("Europe/Rome")
     now = datetime.now(milan_tz)
@@ -81,6 +84,7 @@ def get_now_local_iso():
     now_utc = now.astimezone(timezone.utc)
     return now_utc.replace(microsecond=0, tzinfo=timezone.utc).isoformat()
 
+# constructing variable to pass along query to OTPv2 local server instance
 def construct_variables(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
     vars = {
         "from": from_obj, # queste sono solo coordinate di default, verranno sovrascritte da main.py
@@ -88,7 +92,7 @@ def construct_variables(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
         "dateTime": get_now_local_iso(), # ora di partenza (in formato ISO locale) viene presa al momento della richiesta
         "timetableView": False,
         "arriveBy": False, # alla destinazione ci arrivo quando voglio ma il trip parte da "dateTime"
-        "searchWindow": 40,
+        "searchWindow": 40, # finestra del tempo di partenza
         "modes": {
             "transportModes": [
                 {"transportMode": "bus"},
@@ -109,17 +113,6 @@ def construct_variables(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
 
     return vars
 
-def extractLegs(patterns):
-    """
-    Estrae la lista delle legs dal primo tripPattern.
-    Ritorna una lista di dict, ciascuna rappresentante una leg.
-    """
-    if not patterns:
-        return []
-    p = patterns[0]
-    legs = p.get("legs") or []
-    return legs 
-
 def route_OTP(from_obj, to_obj, on_foot, wheelchair, walkSpeed, numberOfPatterns=2):
 
     # construct variables to pass to OTP
@@ -132,8 +125,8 @@ def route_OTP(from_obj, to_obj, on_foot, wheelchair, walkSpeed, numberOfPatterns
         headers=HEADERS,  # Headers con Content-Type application/json
         timeout=60  # Timeout di 60 secondi per la richiesta
     )
-    otp_request.raise_for_status()  # Solleva eccezione se la risposta ha status code di errore
-    responce_data = otp_request.json()  # Parso la risposta JSON
+    otp_request.raise_for_status()  # If there is any error, raise it
+    responce_data = otp_request.json() # parsing the data
 
     # handling Graph.obj errors
     if responce_data.get("errors"):
@@ -142,36 +135,68 @@ def route_OTP(from_obj, to_obj, on_foot, wheelchair, walkSpeed, numberOfPatterns
             print(" -", errore.get("message"))
         return None  # Ritorna None in caso di errori
 
-    # Estrai i tripPatterns dalla risposta
-    patterns = (
-        (responce_data.get("data") or {}).get("trip") or {}
-    ).get("tripPatterns") or []
+    # Extracting trip patterns from response (these are the segments)
+    patterns = responce_data.get("data").get("trip").get("tripPatterns") or []
     if not patterns:
         print("Nessun tripPattern trovato.")
         return None
 
-    # Filtra i pattern marcati da OTP come "outside-search-window"
-    # (es. corse notturne con costo basso ma fuori dalla finestra di ricerca)
-    valid_patterns = [
-        p for p in patterns
-        if not any(
-            n.get("tag") == "outside-search-window"
-            for n in (p.get("systemNotices") or [])
-        )
-    ]
-    if not valid_patterns:
-        print("Nessun tripPattern valido dopo il filtro outside-search-window.")
-        return None
-
-    # Ordina i patterns per generalizedCost (costo generale) e prendi i migliori N
+    # Ordering patterns based on the generalizedCost OTP2 assigned them:
     ordered_patterns = sorted(
-        valid_patterns,
+        patterns, # if no generalized cost is assigne then it is set to inf and thus it is put last
         key=lambda p: p.get("generalizedCost") if p.get("generalizedCost") is not None else float("inf")
-    )[:numberOfPatterns]
+    )
 
+    # Now we want to extract 1 pattern: 
+    #  - least generalized cost if it is within the search window
+    #  - fastest arrival time if it is outside the search window
+
+    # final patterns to return in here:
+    result_patterns = []
+
+    # split patterns from the response into outside or inside the search window
+    patternsInsideSearchWindow  = []
+    patternsOutsideSearchWindow = [] # ordered by arrival time and not generalized cost
+    # simply populate the ordered lists
+    for pattern in ordered_patterns:
+        # First I need to understand weather this pattern is inside the search window:
+        if isPatternOutsideOfSearchWindow(pattern):
+            patternsOutsideSearchWindow.append(pattern)
+        else: # if the pattern is within the search window
+            patternsInsideSearchWindow.append(pattern)
+
+    # now I still need to reorder the patterns outside the search window by the arrival times
+    patternsOutsideSearchWindow.sort(
+        key=lambda p: p.get("expectedEndTime") if p.get("expectedEndTime") is not None else float("inf")
+    )
+
+    # and now I need to choose the patterns to take the `numberOfPatterns` patterns
+
+    # start by adding all the packets inside the search window
+    result_patterns.extend(patternsInsideSearchWindow[:numberOfPatterns])
+    if numberOfPatterns > len(patternsInsideSearchWindow):
+        # and then add the ones outside the search window up to filling the requested number of packets
+        result_patterns.extend(
+            patternsOutsideSearchWindow[:numberOfPatterns - len(patternsInsideSearchWindow)]
+        )
 
     # print the query with variables for debug
     #print("\n=== VARIABLES SENT TO OTP ===\n", json.dumps({"query": QUERY, "variables": variables, "result": responce_data}))
 
-    return ordered_patterns
+    return result_patterns
 
+# helper function
+def isPatternOutsideOfSearchWindow(pattern):
+
+    # if no system notices exist then I am sure it is inside the search window
+    if pattern.get("systemNotices") is None:
+        return False
+
+    # iterate all notices to see if one says that it is outside of search window
+    for notice in pattern.get("systemNotices"):
+        if notice.get("tag") == "outside-search-window":
+            return True
+
+    return False
+    
+    

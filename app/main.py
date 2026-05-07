@@ -6,6 +6,7 @@ import time
 import requests
 import sys
 import bcrypt
+import traceback
 
 from flask import (
     Flask,
@@ -322,12 +323,7 @@ def dashboard():
 
     POST:
     - legge input utente
-    - costruisce payload per OTP
-    - eventualmente salva nuovi preferiti
-    - aspetta che OTP sia pronto
-    - cancella la vecchia mappa
-    - chiama OTP_routing.route(...)
-    - mostra result.html con iframe verso la mappa
+    - ...
     """
     user = get_logged_user()
     if not user:
@@ -400,7 +396,7 @@ def dashboard():
 
             
             # =========================
-            # COMPLETAMENTO PAYLOAD OTP
+            # ASPETTO OTP
             # =========================
 
             # Prima di fare il routing aspettiamo che OTP sia disponibile
@@ -411,7 +407,10 @@ def dashboard():
                 return render_template("dashboard.html", user=user, favourites=favourites)
 
 
-            # PROVO A FARE IL ROUTING
+            # =========================
+            # ROUTING VERO E PROPRIO
+            # =========================
+
             try:
                 # questo esegue OTP, divide in legs e aggiunge tutto alla mappa (i legs a piedi vengono calcolati di ORS)
                 resultMap, resultData = router.route(
@@ -432,7 +431,13 @@ def dashboard():
                 return render_template("dashboard.html", user=user, favourites=favourites)
             except Exception as e:
                 conn.close()
-                flash(f"Errore generico durante il routing: {e}", "error")
+                # Get detailed error information with traceback
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tb_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                error_details = ''.join(tb_lines)
+                print("=== ERROR DETAILS ===")
+                print(error_details)
+                flash(f"Errore generico durante il routing: {e}\nDettagli: {error_details}", "error")
                 return render_template("dashboard.html", user=user, favourites=favourites)
 
             conn.close()
