@@ -105,7 +105,7 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
 
 
 
-def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, percorsoPolyline, mappaACuiAggiungereLaLegCalcolata, wheelchair=False):
+def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, percorsoPolyline, mappaSuCuiAggiungereLaWalkLegDaCalcolare, wheelchair=False):
     """ritorna l'oggetto mappa aggiornato con percorso, barriere, infrastrutture e facilitatori a seconda che l'utente ha richiesto wheelchair"""
 
     # se il percorso è già stato calcolato da OTP allora skippo la call a ORS:
@@ -140,20 +140,23 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
     # ------------ TROVO GLI ELEMENTI VICINI AL PERCORSO ------------
 
     # dagli elementi estratti trovo quelli rientranti nei buffer del percorso separandoli fra barriere, facilitatori ed infrastrutture
-    barriere, facilitatori, infrastrutture = percorso.trovaElementiSulPercorso(elementi_osm_personalizzati_caricati_dal_db, wheelchair=wheelchair)
+    barriere, facilitatori, infrastrutture = percorso.trovaElementiSulPercorso(
+        elementi_osm_personalizzati_caricati_dal_db, 
+        wheelchair=wheelchair
+    )
 
     # se la mappa non ha alcuna barriera allora ho finito
     if len(barriere) == 0:
         # aggiungo barriere facilitatori e infrastrutture alla mappa
-        mappaACuiAggiungereLaLegCalcolata.aggiungiBarriereFacilitatoriInfrastrutture(
+        mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiBarriereFacilitatoriInfrastrutture(
             barriere,
             facilitatori,
             infrastrutture
         )
         # aggiungo il percorso stesso alla mappa
-        mappaACuiAggiungereLaLegCalcolata.aggiungiPercorso(percorso)
+        mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiPercorso(percorso)
         # e infine ritorno l'oggetto mappa aggiornato
-        return mappaACuiAggiungereLaLegCalcolata
+        return mappaSuCuiAggiungereLaWalkLegDaCalcolare
     # altrimenti itero cercando di migliorare il percorso evitando le barriere trovate finché ne trovo
     # o finché non arrivo ad un numero di iterazioni massimo (per evitare loop infiniti)
 
@@ -167,44 +170,67 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
     # faccio la stessa cosa per il percorso calcolato precedentemente
     tutte_barriere_da_evitare = barriere
     for i in range(NUMERO_DI_ITERAZIONI):
+
+        # innanzitutto salvo il vecchio percorso:
+        vecchioPercorso = percorso
+        vecchieBarriere = barriere
+        vecchiFacilitatori = facilitatori
+        vecchieInfrastrutture = infrastrutture
+        # così se quello nuovo dovesse avere ancora più barriere so che è meglio ritornare quello vecchio
+        # dato che avrebbe meno barriere e sarebbe sicuramente più corto
+
         # calcolo il nuovo percorso mettendo 
         percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine, elementi_da_evitare=tutte_barriere_da_evitare)[0])
+        # ricarico gli elementi dato che sarà cambiata la bbox
+        elementi_osm_personalizzati_caricati_dal_db = caricaElementiDaJSON(
+            directoryDatiORS=base_directory / "data" / "ORS_data", 
+            bbox=percorso.bbox, 
+            wheelchair=wheelchair
+        )
         # dal percorso calcolato trovo tutte le barriere
         barriere, facilitatori, infrastrutture = percorso.trovaElementiSulPercorso(elementi_osm_personalizzati_caricati_dal_db, wheelchair=wheelchair)
         # le nuove barriere trovate le aggiungo per evitarle alla prossima iterazione
-        # se non ci sono più barriere → fermati
-        if len(barriere) == 0:
-            # aggiungo barriere facilitatori e infrastrutture alla mappa
-            mappaACuiAggiungereLaLegCalcolata.aggiungiBarriereFacilitatoriInfrastrutture(
-                barriere,
-                facilitatori,
-                infrastrutture
+        
+        # se ci sono state barriere in più nel nuovo percorso allora prendo quello vecchio
+        if len(barriere) > len(vecchieBarriere):
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiBarriereFacilitatoriInfrastrutture(
+                vecchieBarriere,
+                vecchiFacilitatori,
+                vecchieInfrastrutture
             )
             # aggiungo il percorso stesso alla mappa
-            mappaACuiAggiungereLaLegCalcolata.aggiungiPercorso(percorso)
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiPercorso(vecchioPercorso)
             # e infine ritorno l'oggetto mappa aggiornato
-            return mappaACuiAggiungereLaLegCalcolata
+            return mappaSuCuiAggiungereLaWalkLegDaCalcolare
 
-        # se sta finendo il for e non ho ancora trovato un percorso senza barriere
-        # mi arrendo e stampo tutti i tracciati ottenuti fino ad ora
-        if i == NUMERO_DI_ITERAZIONI - 1:
+
+        # se non ci sono più barriere o se sta finendo il for e non ho ancora trovato un percorso senza barriere
+        # mi arrendo e aggiungo tutti i tracciati ottenuti fino ad ora
+        if len(barriere) == 0 or i == NUMERO_DI_ITERAZIONI - 1:
             # aggiungo barriere facilitatori e infrastrutture alla mappa
-            mappaACuiAggiungereLaLegCalcolata.aggiungiBarriereFacilitatoriInfrastrutture(
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiBarriereFacilitatoriInfrastrutture(
                 barriere,
                 facilitatori,
                 infrastrutture
             )
             # aggiungo il percorso stesso alla mappa
-            mappaACuiAggiungereLaLegCalcolata.aggiungiPercorso(percorso)
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiPercorso(percorso)
             # e infine ritorno l'oggetto mappa aggiornato
-            return mappaACuiAggiungereLaLegCalcolata
+            return mappaSuCuiAggiungereLaWalkLegDaCalcolare
 
         # aggiungo le nuove barriere trovate per la prossima iterazione
         for barriera in barriere:
             if barriera not in tutte_barriere_da_evitare:
                 tutte_barriere_da_evitare.append(barriera)
 
-    return mappaACuiAggiungereLaLegCalcolata
+    # aggiungo barriere facilitatori e infrastrutture alla mappa
+    mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiBarriereFacilitatoriInfrastrutture(
+        barriere,
+        facilitatori,
+        infrastrutture
+    )
+
+    return mappaSuCuiAggiungereLaWalkLegDaCalcolare
 
 
 def computeBbox(pol):

@@ -1,0 +1,38 @@
+[
+    {
+        "id": "idACaso-12345",
+        "barrieraPer": [],
+        "facilitatorePer": [
+            "Motoria"
+        ],
+        "infrastrutturaPer": [],
+        "autore": "Albi",
+        "ranking": 100,
+        "nome": "Facilitatore per la disabilità motoria",
+        "descrizione": "Queto è un dato facilmente aggiungibile ai dati OSM per future implementazioni",
+        "immagine": null,
+        "elementoOSM": {},
+        "coordinateCentroide": {
+            "longitudine": 9.182810328969838,
+            "latitudine": 45.46294648902748
+        }
+    },
+    {
+        "id": "idACaso2-54321",
+        "barrieraPer": [],
+        "facilitatorePer": [],
+        "infrastrutturaPer": [
+            "Motoria"
+        ],
+        "autore": "Albi",
+        "ranking": 100,
+        "nome": "Infrastruttura per la disabilità motoria",
+        "descrizione": "<p>Questo è un dato facilmente aggiungibile ai dati OSM per future implementazioni</p><p>Verrà aggiunto potenzialmente da utenti che vogliono contribuire al progetto</p>",
+        "immagine": null,
+        "elementoOSM": {},
+        "coordinateCentroide": {
+            "longitudine": 9.182672660435482,
+            "latitudine": 45.46305410828211
+        }
+    }
+]

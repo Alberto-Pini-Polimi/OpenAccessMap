@@ -78,10 +78,10 @@ def route(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
     # add foot legs to the map
     for leg in walk_legs:
         map = ORS_routing.calculateWalkingLegAndAddResultToMap(
-            coordinateInizio=leg.get("start_coordinates"),  # Coordinate di inizio del segmento pedonale
-            coordinateFine=leg.get("end_coordinates"),  # Coordinate di fine del segmento pedonale
+            coordinateInizio=leg.get("start_coordinates"), # Coordinate di inizio del segmento pedonale
+            coordinateFine=leg.get("end_coordinates"),     # Coordinate di fine del segmento pedonale
             percorsoPolyline=leg.get("track"),
-            mappaACuiAggiungereLaLegCalcolata=map,  # Oggetto mappa da aggiornare
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare=map,  # Oggetto mappa da aggiornare
             wheelchair=wheelchair
         )
     

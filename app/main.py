@@ -558,6 +558,14 @@ def debug_route():
             "wheelchair": True,
             "speed": 1/3.6
         }
+    elif debug_path_requested == 3: # camminata in centro con ostacoli
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.4636319, 'longitude': 9.1830183}},
+            "to_obj": {'coordinates': {'latitude': 45.462278, 'longitude': 9.1861004}},
+            "on_foot": True,
+            "wheelchair": True,
+            "speed": 5/3.6
+        }
 
     try:
 
