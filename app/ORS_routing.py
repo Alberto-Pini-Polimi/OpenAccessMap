@@ -92,7 +92,7 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
         elif call.status_code == 400:
             raise RuntimeError(f"Richiesta non valida inviata a ORS (400). Controlla i parametri del percorso: {e}")
         elif call.status_code == 404:
-            raise RuntimeError("Errore 404!?")
+            raise RuntimeError("Errore 404: Endpoint non trovato.")
         else:
             raise RuntimeError(f"Errore HTTP da ORS ({call.status_code}): {e}")
     except RuntimeError:

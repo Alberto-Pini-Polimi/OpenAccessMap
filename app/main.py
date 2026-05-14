@@ -607,6 +607,7 @@ def debug_route():
         error_details = ''.join(tb_lines)
         print("=== ERROR DETAILS ===")
         print(error_details)
+        flash(f"Errore nel rendering della mappa: {e}", "error")
         return render_template("login.html")
 
 
