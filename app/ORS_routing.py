@@ -83,20 +83,22 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
             return None
         
     except requests.exceptions.HTTPError as e:
-        print(f"Errore HTTP nel calcolo del percorso: {e}")
         if call.status_code == 401:
-            print("Chiave API non valida o mancante")
+            raise RuntimeError("Chiave API ORS non valida o mancante. Controlla la variabile ORS_API_KEY.")
         elif call.status_code == 403:
-            print("Accesso negato")
+            raise RuntimeError("Accesso negato da ORS. Verifica i permessi della chiave API.")
         elif call.status_code == 413:
-            print("Richiesta troppo grande!") #TODO ho messo return al posto di exit. DA TESTARE
-            return None
+            raise RuntimeError("La richiesta a ORS è troppo grande: troppe barriere da evitare o percorso troppo lungo.")
         elif call.status_code == 400:
-            print("Richiesta malformata, controlla i parametri inviati")
-        exit(-1)
+            raise RuntimeError(f"Richiesta non valida inviata a ORS (400). Controlla i parametri del percorso: {e}")
+        elif call.status_code == 404:
+            raise RuntimeError("Errore 404!?")
+        else:
+            raise RuntimeError(f"Errore HTTP da ORS ({call.status_code}): {e}")
+    except RuntimeError:
+        raise  # rilancia le RuntimeError tale e quale
     except Exception as e:
-        print(f"Altro errore nel calcolo del percorso: {e}")
-        exit(-1)
+        raise RuntimeError(f"Errore imprevisto durante la comunicazione con ORS: {e}")
 
 
 
@@ -125,7 +127,10 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
 
         #print(f"Walk leg: {coordinateInizio} a {coordinateFine}...")
         # quello calcolato è il percorso di default ed anche il più veloce
-        percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine)[0])
+        routes = callToORS(inizio=coordinateInizio, fine=coordinateFine)
+        if not routes:
+            raise RuntimeError("ORS non ha trovato nessun percorso pedonale tra i due punti indicati.")
+        percorso = Percorso(routes[0])
 
     # ------------ CARICAMENTO DATI DAL DB ------------
 
@@ -179,8 +184,11 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
         # così se quello nuovo dovesse avere ancora più barriere so che è meglio ritornare quello vecchio
         # dato che avrebbe meno barriere e sarebbe sicuramente più corto
 
-        # calcolo il nuovo percorso mettendo 
-        percorso = Percorso(callToORS(inizio=coordinateInizio, fine=coordinateFine, elementi_da_evitare=tutte_barriere_da_evitare)[0])
+        # calcolo il nuovo percorso evitando le barriere trovate
+        routes = callToORS(inizio=coordinateInizio, fine=coordinateFine, elementi_da_evitare=tutte_barriere_da_evitare)
+        if not routes:
+            raise RuntimeError("ORS non ha trovato un percorso alternativo per evitare le barriere.")
+        percorso = Percorso(routes[0])
         # ricarico gli elementi dato che sarà cambiata la bbox
         elementi_osm_personalizzati_caricati_dal_db = caricaElementiDaJSON(
             directoryDatiORS=base_directory / "data" / "ORS_data", 

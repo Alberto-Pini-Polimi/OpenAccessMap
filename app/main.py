@@ -566,6 +566,14 @@ def debug_route():
             "wheelchair": True,
             "speed": 5/3.6
         }
+    elif debug_path_requested == 4: # chiesa di cristo - cairoli con mezzi
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.4684915, 'longitude': 9.1819853}},
+            "to_obj": {'coordinates': {'latitude': 45.4632501, 'longitude': 9.1841895}},
+            "on_foot": False,
+            "wheelchair": True,
+            "speed": 5/3.6
+        }
 
     try:
 

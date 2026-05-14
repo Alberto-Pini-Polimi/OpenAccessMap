@@ -310,6 +310,37 @@ class Map:
 
 
 
+    def adattaVistaAlPercorso(self, coordinate_partenza, coordinate_arrivo, coordinate_extra=None):
+        """
+        Centra e zooma la mappa per includere tutto il percorso.
+
+        coordinate_partenza: (lat, lon) del punto di partenza
+        coordinate_arrivo:   (lat, lon) del punto di arrivo
+        coordinate_extra:    lista opzionale di (lat, lon) aggiuntive (es. stazioni intermedie)
+                             per rendere il bounding box più preciso
+        """
+        tutti_i_punti = [coordinate_partenza, coordinate_arrivo]
+        if coordinate_extra:
+            tutti_i_punti.extend(coordinate_extra)
+
+        # Filtra punti non validi (None o con valori None al loro interno)
+        punti_validi = [
+            p for p in tutti_i_punti
+            if p is not None and p[0] is not None and p[1] is not None
+        ]
+
+        if not punti_validi:
+            return  # nessun punto valido, non fare nulla
+
+        lats = [p[0] for p in punti_validi]
+        lons = [p[1] for p in punti_validi]
+
+        # calcolo il bounding box
+        south_west = [min(lats), min(lons)]
+        north_east = [max(lats), max(lons)]
+
+        self.mappa.fit_bounds([south_west, north_east], padding=(40, 40))
+
     # al posto di salvare la mappa la estraggo in html così da poterla mettere nell'iframe della pagina dei risultati per gli utenti
     def getMappaInHTML(self):
         """Restituisce il codice HTML della mappa come stringa"""

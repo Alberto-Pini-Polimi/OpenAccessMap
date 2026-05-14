@@ -84,7 +84,41 @@ def route(from_obj, to_obj, on_foot, wheelchair, walkSpeed):
             mappaSuCuiAggiungereLaWalkLegDaCalcolare=map,  # Oggetto mappa da aggiornare
             wheelchair=wheelchair
         )
-    
+
+    # ======================
+    # |  Fit map to route  |
+    # ======================
+
+    # raccoglie le coordinate di partenza e arrivo di tutti i legs
+    # per avere un bounding box preciso che include anche le stazioni intermedie
+    coordinate_partenza_percorso = (
+        from_obj["coordinates"]["latitude"],
+        from_obj["coordinates"]["longitude"]
+    )
+    coordinate_arrivo_percorso = (
+        to_obj["coordinates"]["latitude"],
+        to_obj["coordinates"]["longitude"]
+    )
+
+    # punti intermedi (stazioni di salita/discesa dei mezzi)
+    punti_intermedi = []
+    for leg in transit_legs:
+        if leg.get("start_coordinates"):
+            punti_intermedi.append(leg["start_coordinates"])
+        if leg.get("end_coordinates"):
+            punti_intermedi.append(leg["end_coordinates"])
+    for leg in walk_legs:
+        if leg.get("start_coordinates"):
+            punti_intermedi.append(leg["start_coordinates"])
+        if leg.get("end_coordinates"):
+            punti_intermedi.append(leg["end_coordinates"])
+
+    map.adattaVistaAlPercorso(
+        coordinate_partenza=coordinate_partenza_percorso,
+        coordinate_arrivo=coordinate_arrivo_percorso,
+        coordinate_extra=punti_intermedi
+    )
+
     return map, outputData
 
 
