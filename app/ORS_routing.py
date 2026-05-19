@@ -22,7 +22,7 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
     # recupero la chiave di ORS
     ORS_API_KEY = os.getenv("ORS_API_KEY")
     if not ORS_API_KEY:
-        print("⚠️ Attenzione: La variabile d'ambiente ORS_API_KEY non è settata!")
+        raise RuntimeError("⚠️ Attenzione: La variabile d'ambiente ORS_API_KEY non è settata! Imposta ORS_API_KEY nel container/ambiente.")
         
     # Costruisco il body & headers
     coordinates = [[inizio[1], inizio[0]]]
@@ -83,6 +83,30 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
             return None
         
     except requests.exceptions.HTTPError as e:
+        # Logga dettagli utili per il debug: metodo, url, headers e body della richiesta, e risposta completa da ORS
+        try:
+            req = call.request
+            print("--- ORS request debug ---")
+            print(f"Request method: {req.method}")
+            print(f"Request url: {req.url}")
+            try:
+                # headers può contenere byte/None, stampiamo in modo sicuro
+                print(f"Request headers: {dict(req.headers)}")
+            except Exception:
+                print(f"Request headers (raw): {req.headers}")
+            try:
+                print(f"Request body: {req.body}")
+            except Exception:
+                print("Request body: <could not decode>")
+            print("--- ORS response ---")
+            print(f"Status code: {call.status_code}")
+            try:
+                print(f"Response text: {call.text}")
+            except Exception:
+                print("Response text: <could not decode>")
+            print("--- end debug ---")
+        except Exception as _:
+            print("Impossibile loggare i dettagli della request/response ORS.")
         if call.status_code == 401:
             raise RuntimeError("Chiave API ORS non valida o mancante. Controlla la variabile ORS_API_KEY.")
         elif call.status_code == 403:
@@ -92,7 +116,8 @@ def callToORS(inizio, fine, elementi_da_evitare=None, waypoints=None, preferenza
         elif call.status_code == 400:
             raise RuntimeError(f"Richiesta non valida inviata a ORS (400). Controlla i parametri del percorso: {e}")
         elif call.status_code == 404:
-            raise RuntimeError("Errore 404: Endpoint non trovato.")
+            print("Nessun percorso trovato da ORS (Errore 404: percorso impossibile con le restrizioni date).")
+            return None
         else:
             raise RuntimeError(f"Errore HTTP da ORS ({call.status_code}): {e}")
     except RuntimeError:
@@ -187,7 +212,16 @@ def calculateWalkingLegAndAddResultToMap(coordinateInizio, coordinateFine, perco
         # calcolo il nuovo percorso evitando le barriere trovate
         routes = callToORS(inizio=coordinateInizio, fine=coordinateFine, elementi_da_evitare=tutte_barriere_da_evitare)
         if not routes:
-            raise RuntimeError("ORS non ha trovato un percorso alternativo per evitare le barriere.")
+            # Nessun percorso alternativo trovato, ritorno quello precedente
+            print("ORS non ha trovato un percorso alternativo per evitare le barriere. Utilizzo il percorso precedente.")
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiBarriereFacilitatoriInfrastrutture(
+                vecchieBarriere,
+                vecchiFacilitatori,
+                vecchieInfrastrutture
+            )
+            mappaSuCuiAggiungereLaWalkLegDaCalcolare.aggiungiPercorso(vecchioPercorso)
+            return mappaSuCuiAggiungereLaWalkLegDaCalcolare
+            
         percorso = Percorso(routes[0])
         # ricarico gli elementi dato che sarà cambiata la bbox
         elementi_osm_personalizzati_caricati_dal_db = caricaElementiDaJSON(
