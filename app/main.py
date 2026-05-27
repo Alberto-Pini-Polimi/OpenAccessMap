@@ -574,6 +574,22 @@ def debug_route():
             "wheelchair": True,
             "speed": 5/3.6
         }
+    elif debug_path_requested == 5: # baracca - ortomercato con mezzi
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.4667204, 'longitude': 9.1653304}},
+            "to_obj": {'coordinates': {'latitude': 45.453304, 'longitude': 9.2305929}},
+            "on_foot": False,
+            "wheelchair": True,
+            "speed": 5/3.6
+        }
+    elif debug_path_requested == 6: # baracca - ortomercato senza mezzi
+        input = {
+            "from_obj": {'coordinates': {'latitude': 45.4667204, 'longitude': 9.1653304}},
+            "to_obj": {'coordinates': {'latitude': 45.453304, 'longitude': 9.2305929}},
+            "on_foot": True,
+            "wheelchair": True,
+            "speed": 5/3.6
+        }
 
     try:
 
