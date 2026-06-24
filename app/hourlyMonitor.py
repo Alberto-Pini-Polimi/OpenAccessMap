@@ -58,7 +58,7 @@ def check_new_breakdowns():
         for station in sorted(broken_stations):
             print(f"   ❌ {station}")
     else:
-        print("✅ Nessun nuovo guasto rilevante. Tutte le stazioni accessibili stanotte lo sono ancora.")
+        print("✅ Nessun nuovo guasto rilevante. Tutte le stazioni accessibili prima lo sono ancora.")
 
 if __name__ == "__main__":
     check_new_breakdowns()
