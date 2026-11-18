@@ -28,7 +28,11 @@ start_time=$(date +%s)
 if [ "$(docker inspect -f '{{.State.Running}}' openaccessmap-builder 2>/dev/null)" = "true" ]; then
     echo "⏳ openaccessmap-builder è già in esecuzione, attendo il termine..."
     docker wait openaccessmap-builder
-else
+fi
+
+# Se il grafo non è ancora stato generato (es. il primo avvio parallelo è fallito a cartella vuota), avvialo ora
+if [ ! -s data/OTP_data/staging/graph.obj ]; then
+    echo "🏗️ Avvio compilazione con openaccessmap-builder..."
     docker start -a openaccessmap-builder
 fi
 end_time=$(date +%s)
