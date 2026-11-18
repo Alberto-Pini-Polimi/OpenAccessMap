@@ -1,7 +1,6 @@
 services:
   python-app:
     build: .
-    image: openaccessmap-web:latest
     container_name: openaccessmap-web
     restart: unless-stopped
     environment:
