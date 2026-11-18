@@ -2,47 +2,36 @@
 set -e
 
 DOCKER_SOCK="/var/run/docker.sock"
+DS="python3 /app/app/docker_socket.py"
 
-# Helper: chiama le API Docker via socket senza il binario docker
-docker_api() {
-    curl -s --unix-socket "$DOCKER_SOCK" "$@"
-}
-
-# Avvia un container per nome e aspetta che finisca
+# Avvia un container e aspetta che finisca
 docker_start_and_wait() {
     local name="$1"
-    echo "▶ Avvio container $name via Docker API..."
-    docker_api -X POST "http://localhost/containers/$name/start"
+    echo "▶ Avvio container $name..."
+    $DS start "$name"
 
     echo "⏳ Attendo che $name finisca..."
-    while true; do
-        state=$(docker_api "http://localhost/containers/$name/json" | \
-            python3 -c "import sys,json; d=json.load(sys.stdin); print(d['State']['Running'])" 2>/dev/null)
-        if [ "$state" = "False" ]; then
-            break
-        fi
+    while [ "$($DS is_running "$name" 2>/dev/null)" = "True" ]; do
         sleep 5
     done
 
-    exit_code=$(docker_api "http://localhost/containers/$name/json" | \
-        python3 -c "import sys,json; d=json.load(sys.stdin); print(d['State']['ExitCode'])" 2>/dev/null)
-    echo "✅ Container $name terminato con exit code: $exit_code"
+    local exit_code
+    exit_code=$($DS exit_code "$name" 2>/dev/null)
+    echo "Container $name terminato con exit code: $exit_code"
     return "$exit_code"
 }
 
-# Riavvia un container per nome
+# Riavvia un container
 docker_restart() {
     local name="$1"
-    echo "🔄 Riavvio container $name via Docker API..."
-    docker_api -X POST "http://localhost/containers/$name/restart"
+    echo "🔄 Riavvio container $name..."
+    $DS restart "$name"
 }
 
 # Verifica se un container è in esecuzione
 docker_is_running() {
     local name="$1"
-    state=$(docker_api "http://localhost/containers/$name/json" | \
-        python3 -c "import sys,json; d=json.load(sys.stdin); print(d['State']['Running'])" 2>/dev/null)
-    [ "$state" = "True" ]
+    [ "$($DS is_running "$name" 2>/dev/null)" = "True" ]
 }
 
 echo "🚀 [$(date +%T)] Avvio aggiornamento OTP in staging..."
@@ -77,7 +66,7 @@ if docker_is_running "openaccessmap-builder"; then
     while docker_is_running "openaccessmap-builder"; do sleep 5; done
 fi
 
-# Se il grafo non esiste ancora (es. primo avvio con race condition), avvia il builder
+# Avvia il builder (o riavvialo se il grafo non c'è ancora per race condition al primo boot)
 if [ ! -s data/OTP_data/staging/graph.obj ]; then
     docker_start_and_wait "openaccessmap-builder"
 fi
