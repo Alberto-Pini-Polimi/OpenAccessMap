@@ -9,7 +9,7 @@ from pathlib import Path
 from extractScraperData import DATA_URL, getData, Station
 
 # path to the OTP data folder
-OTP_DATA_FOLDER = Path(__file__).resolve().parent.parent / "data/OTP_data"
+OTP_DATA_FOLDER = Path(__file__).resolve().parent.parent / "data/OTP_data/staging"
 GTFS_FILE_PATH = OTP_DATA_FOLDER / "Milano-gtfs.zip"
 
 # File di appoggio per passare lo stato al terzo script

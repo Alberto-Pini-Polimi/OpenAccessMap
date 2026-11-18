@@ -2,9 +2,7 @@
 FROM python:3.10-slim
 
 # Installa le dipendenze di sistema necessarie per librerie spaziali come shapely e pyproj
-RUN apt-get update && apt-get install -y \
-    libgdal-dev g++ --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends docker.io && rm -rf /var/lib/apt/lists/*
 
 # Imposta la cartella di lavoro dentro il container
 WORKDIR /usr/src/project

@@ -1,45 +1,51 @@
 services:
+  python-app:
+    build: .
+    image: openaccessmap-web:latest
+    container_name: openaccessmap-web
+    restart: unless-stopped
+    volumes:
+      - /opt/openaccessmap/data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy_network
+
   otp:
     image: opentripplanner/opentripplanner:latest
-    container_name: otp-server
+    container_name: openaccessmap-otp
+    restart: unless-stopped
+    command: --load /var/opentripplanner
     volumes:
-      - ./data/OTP_data:/var/opentripplanner
-    command: ["--load"] # Per caricare graph.obj
-    ports:
-      - "8080:8080"
-    environment:
-      - JAVA_TOOL_OPTIONS=-Xmx6g
+      - /opt/openaccessmap/data/OTP_data/live:/var/opentripplanner
+    networks:
+      - proxy_network
 
-  python-app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: python-client
-    depends_on:
-      - otp
-    # Montiamo le cartelle locali dentro il container in /usr/src/project
-    volumes:
-      - ./app:/usr/src/project/app
-      - ./data:/usr/src/project/data
-      - ./MapOutputFolder:/usr/src/project/MapOutputFolder
-      - ./data/ORS_data:/usr/src/project/data/ORS_data
-      - ./data/OTP_data:/usr/src/project/data/OTP_data
-    environment:
-      - ORS_API_KEY=${ORS_API_KEY}
-      - OTP_URL=http://otp:8080/otp/transmodel/v3
-      - PYTHONUNBUFFERED=1
-    env_file:
-      - .env
-    ports:
-      - "5000:5000"
-
-  # Servizio per la BUILD del graph.obj
   otp-builder:
     image: opentripplanner/opentripplanner:latest
-    container_name: otp-builder
-    profiles: ["tools"] # <--- !!!
+    container_name: openaccessmap-builder
+    restart: "no"
+    command: --build --save /var/opentripplanner
     volumes:
-      - ./data/OTP_data:/var/opentripplanner
-    command: ["--build", "--save"] # per buildare solo quello
-    environment:
-      - JAVA_TOOL_OPTIONS=-Xmx6g
+      - /opt/openaccessmap/data/OTP_data/staging:/var/opentripplanner
+
+  scheduler:
+    image: mcuadros/ofelia:latest
+    container_name: openaccessmap-scheduler
+    restart: unless-stopped
+    depends_on:
+      - python-app
+      - otp
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-exec.hourly-monitor.schedule: "0 1,2,3,5,6,7,9,10,11,13,14,15,17,18,19,21,22,23 * * *"
+      ofelia.job-exec.hourly-monitor.container: "openaccessmap-web"
+      ofelia.job-exec.hourly-monitor.command: "python3 app/hourlyMonitor.py"
+      ofelia.job-exec.total-build.schedule: "0 */4 * * *"
+      ofelia.job-exec.total-build.container: "openaccessmap-web"
+      ofelia.job-exec.total-build.command: "/bin/bash /app/serverRoutine.sh"
+
+networks:
+  proxy_network:
+    external: true

@@ -1,5 +1,5 @@
 .env
-data/OTP_data/graph.obj
+/data
 app/DB/database.db
 *.pyc
 /MapOutputFolder

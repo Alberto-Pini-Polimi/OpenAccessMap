@@ -1,51 +1,25 @@
 #!/bin/bash
+set -e
 
-echo ""
-echo "🚀 Avvio aggiornamento OTP per Milano..."
+echo "🚀 [$(date +%T)] Avvio aggiornamento OTP in staging..."
+mkdir -p data/OTP_data/live data/OTP_data/staging
+rm -f data/OTP_data/staging/graph.obj
 
-# 1/5 - Spegni il servizio
-echo "prima fermo il servizio OTP!"
-docker compose down
-if [ $? -ne 0 ]; then
-    echo "❌ Errore durante l'arresto del servizio"
-    exit 1
-fi
-
-echo ""
-
-# 2/5 - Esegui lo script di aggiornamento GTFS
-echo "🔄 2/5 - Eseguo dailyGTFSzipUpdater.py..."
+echo "🔄 1/3 - Scarico e aggiorno GTFS in staging..."
 python3 app/dailyGTFSzipUpdater.py
-if [ $? -ne 0 ]; then
-    echo "❌ Errore durante l'aggiornamento GTFS"
+
+echo "🏗️ 2/3 - Compilo graph.obj in staging (l'app resta online)..."
+start_time=$(date +%s)
+docker start -a openaccessmap-builder
+end_time=$(date +%s)
+echo "✅ Build completata in $((end_time - start_time)) secondi"
+
+if [ ! -s data/OTP_data/staging/graph.obj ]; then
+    echo "❌ ERRORE: graph.obj non generato. Mantengo il grafo live precedente."
     exit 1
 fi
 
-echo ""
-
-# 3/5 - Elimina graph.obj vecchio
-echo "🗑️ 3/5 - Rimuovo graph.obj esistente..."
-rm -f data/OTP_data/graph.obj
-echo "✅ graph.obj rimosso (se presente)"
-
-echo ""
-
-# 4/5 - Ribuilda OTP con timer
-echo "🏗️ 4/5 - Avvio build OTP con nuovi dati..."
-echo "⏳ Build in corso... (questo potrebbe richiedere alcuni minuti)"
-start_time=$(date +%s)
-docker compose run --rm otp-builder > /dev/null 2>&1
-end_time=$(date +%s)
-duration=$((end_time - start_time))
-echo "✅ Build completata in $duration secondi"
-
-echo ""
-
-# 5/5 - Istruzioni per avvio manuale
-echo "📌 5/5 - Avvio servizio in background"
-docker compose up -d
-echo "✅ servizio avviato"
-
-echo ""
-echo "📜 I log di python-app verranno salvati in 'server.log' in background..."
-docker compose logs -f python-app >> server.log 2>&1 & # scrivo output in server.log (aggiungo solo a quello che c'è giá)
+echo "🔄 3/3 - Sostituisco graph.obj e riavvio OTP..."
+mv -f data/OTP_data/staging/graph.obj data/OTP_data/live/graph.obj
+docker restart openaccessmap-otp
+echo "🎉 [$(date +%T)] Aggiornamento completato!"
