@@ -14,10 +14,9 @@ services:
       - /opt/openaccessmap/data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "5000:5000"
+      - "127.0.0.1:5000:5000"
     networks:
       - default
-      - proxy_network
 
   otp:
     image: opentripplanner/opentripplanner:latest
@@ -66,5 +65,3 @@ services:
 networks:
   default:
     name: openaccessmap_internal
-  proxy_network:
-    external: true
