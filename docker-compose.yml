@@ -22,7 +22,7 @@ services:
     image: opentripplanner/opentripplanner:latest
     container_name: openaccessmap-otp
     restart: unless-stopped
-    command: --load /var/opentripplanner
+    command: ["--load", "/var/opentripplanner"]
     environment:
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:--Xmx6g}
     volumes:
@@ -34,7 +34,7 @@ services:
     image: opentripplanner/opentripplanner:latest
     container_name: openaccessmap-builder
     restart: "no"
-    command: --build --save /var/opentripplanner
+    command: ["--build", "--save", "/var/opentripplanner"]
     environment:
       - JAVA_TOOL_OPTIONS=${JAVA_TOOL_OPTIONS:--Xmx6g}
     volumes:
