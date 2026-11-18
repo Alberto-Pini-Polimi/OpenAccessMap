@@ -1,7 +1,10 @@
 .env
-/data
-app/DB/database.db
 *.pyc
+__pycache__/
 /MapOutputFolder
 .continueignore
 server.log
+data/**/graph.obj
+data/**/tmp_gtfs_unzip
+data/database.db
+app/DB/database.db

@@ -1,16 +1,22 @@
 # Usa un'immagine Python leggera ma completa
 FROM python:3.10-slim
 
-# Installa le dipendenze di sistema necessarie per librerie spaziali come shapely e pyproj
+# Installa il client Docker per pilotare i container otp e otp-builder tramite socket
 RUN apt-get update && apt-get install -y --no-install-recommends docker.io && rm -rf /var/lib/apt/lists/*
 
-# Imposta la cartella di lavoro dentro il container
-WORKDIR /usr/src/project
+WORKDIR /app
 
-# Copia il requirements e installa le dipendenze
-COPY app/requirements.txt ./
+# Copia e installa le dipendenze Python
+COPY app/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Il codice vero e proprio lo monteremo tramite docker-compose per comodità,
-# ma definiamo il comando di default per tenere in vita il container
-CMD ["python", "app/main.py"]
+# Copia l'intero progetto dentro il container
+COPY . /app
+
+# Crea la cartella template di backup per inizializzare il volume montato dall'host se vuoto
+RUN cp -r /app/data /app/data_template
+
+# Rendi eseguibili gli script
+RUN chmod +x /app/serverRoutine.sh /app/entrypoint.sh /app/main.sh
+
+ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]

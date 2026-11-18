@@ -9,14 +9,15 @@ from pathlib import Path
 from extractScraperData import DATA_URL, getData, Station
 
 # path to the OTP data folder
-OTP_DATA_FOLDER = Path(__file__).resolve().parent.parent / "data/OTP_data/staging"
-GTFS_FILE_PATH = OTP_DATA_FOLDER / "Milano-gtfs.zip"
+BASE_OTP_DATA = Path(__file__).resolve().parent.parent / "data/OTP_data"
+STAGING_FOLDER = BASE_OTP_DATA / "staging"
+GTFS_FILE_PATH = STAGING_FOLDER / "Milano-gtfs.zip"
 
-# File di appoggio per passare lo stato al terzo script
-BASELINE_FILE = OTP_DATA_FOLDER / "daily_accessibility_baseline.json"
+# File di appoggio per passare lo stato al terzo script (nella root di OTP_data per hourlyMonitor e maps)
+BASELINE_FILE = BASE_OTP_DATA / "daily_accessibility_baseline.json"
 # file di aggiornamento orario con i nuovi updates sull'accessibilità rispetto
 # al momento in cui il GTFS viene aggiornato
-HOURLY_DATA_UPDATE_FILE = OTP_DATA_FOLDER / "inaccessible_stations_till_last_GTFSzip_file_update.txt"
+HOURLY_DATA_UPDATE_FILE = BASE_OTP_DATA / "inaccessible_stations_till_last_GTFSzip_file_update.txt"
 
 def unzip_gtfs(zip_path, extract_to):
     """Estrae il contenuto del file ZIP in una cartella specifica."""
@@ -123,6 +124,9 @@ def onceEach24H():
     # diventare inaccessibile nelle ore fra l'ultimo aggiornamento del file graph.obj
     # e il momento in cui l'utente cerca il percorso
     daily_status = {name: station.definedAsAccessible() for name, station in stations_dict.items()}
+    BASE_OTP_DATA.mkdir(parents=True, exist_ok=True)
+    STAGING_FOLDER.mkdir(parents=True, exist_ok=True)
+
     with open(BASELINE_FILE, 'w') as f:
         json.dump(daily_status, f)
     print("💾 Stato giornaliero salvato per il monitoraggio orario.")
@@ -130,7 +134,7 @@ def onceEach24H():
     # ora cancello i dati del monitoraggio orario delle 24h ormai passate (una sorta di reset)
     open(HOURLY_DATA_UPDATE_FILE, "w").close()
 
-    extraction_folder = OTP_DATA_FOLDER / "tmp_gtfs_unzip"
+    extraction_folder = STAGING_FOLDER / "tmp_gtfs_unzip"
 
     try:
         # unzip del gtfs

@@ -1,19 +1,39 @@
+import os
 import sqlite3
 from pathlib import Path
 from typing import Optional
 
 
-DB_PATH = Path("app/DB/database.db")  # runna da progetto
+DB_PATH = Path(os.getenv("DATABASE_PATH", "data/database.db"))  # salvato nella cartella persistente data/
 
 
 def get_connection(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     """
     Apre una connessione SQLite e abilita le foreign keys.
     Imposta anche row_factory per leggere i risultati come dict-like rows.
+    Inizializza automaticamente le tabelle se il database è nuovo.
     """
-    conn = sqlite3.connect(db_path)
+    path_obj = Path(db_path)
+    path_obj.parent.mkdir(parents=True, exist_ok=True)
+    is_new = not path_obj.exists()
+
+    conn = sqlite3.connect(path_obj)
     conn.execute("PRAGMA foreign_keys = ON;")
-    conn.row_factory = sqlite3.Row # permette di accedere alle colonne per nome, e di convertire facilmente in dict
+    conn.row_factory = sqlite3.Row  # permette di accedere alle colonne per nome, e di convertire facilmente in dict
+
+    if is_new:
+        try:
+            from DB.init_db import create_tables, create_triggers
+            create_tables(conn)
+            create_triggers(conn)
+        except Exception:
+            try:
+                from app.DB.init_db import create_tables, create_triggers
+                create_tables(conn)
+                create_triggers(conn)
+            except Exception as e:
+                print(f"⚠️ Inizializzazione automatica schema DB fallita: {e}")
+
     return conn
 
 

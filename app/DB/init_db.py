@@ -1,9 +1,10 @@
+import os
 import sqlite3
 from pathlib import Path
 
 
 # === CONFIG ===
-DB_PATH = Path("app/DB/database.db")
+DB_PATH = Path(os.getenv("DATABASE_PATH", "data/database.db"))
 
 
 def get_connection(db_path: Path) -> sqlite3.Connection:

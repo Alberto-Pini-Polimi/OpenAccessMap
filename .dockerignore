@@ -1,0 +1,12 @@
+.git
+.gitignore
+*.pyc
+__pycache__
+app/__pycache__
+app/DB/__pycache__
+server.log
+data/OTP_data/**/graph.obj
+data/OTP_data/graph.obj
+data/OTP_data/**/tmp_gtfs_unzip
+data/database.db
+app/DB/database.db

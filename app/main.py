@@ -52,7 +52,8 @@ def attendi_otp(url_otp, timeout_minuti=10):
     while True:
         try:
             # Qui facciamo una richiesta semplice per verificare se OTP è vivo
-            response = requests.get("http://otp:8080/otp/", timeout=5)
+            ping_url = url_otp.split("/otp/")[0] + "/otp/" if "/otp/" in url_otp else "http://otp:8080/otp/"
+            response = requests.get(ping_url, timeout=5)
             if response.status_code < 500:
                 print("✅ OTP pronto.")
                 return True
