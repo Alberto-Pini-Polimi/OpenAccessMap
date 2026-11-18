@@ -22,7 +22,18 @@
     }
   },
   "transit": {
-    "maxNumberOfTransfers": 10
+    "maxNumberOfTransfers": 10,
+    "transferCacheRequests": [
+      {
+        "modes": "WALK"
+      },
+      {
+        "modes": "WALK",
+        "wheelchairAccessibility": {
+          "enabled": true
+        }
+      }
+    ]
   },
   "updaters": []
 }

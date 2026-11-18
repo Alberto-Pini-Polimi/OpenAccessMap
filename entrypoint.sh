@@ -14,9 +14,9 @@ mkdir -p data/OTP_data/live data/OTP_data/staging data/ORS_data
 chmod -R 777 data/OTP_data 2>/dev/null || true
 
 # 2. Assicura file di configurazione
-cp -n data/OTP_data/otp-config.json data/OTP_data/live/ 2>/dev/null || true
-cp -n data/OTP_data/router-config.json data/OTP_data/live/ 2>/dev/null || true
-cp -n data/OTP_data/build-config.json data/OTP_data/staging/ 2>/dev/null || true
+cp -f data/OTP_data/otp-config.json data/OTP_data/live/ 2>/dev/null || true
+cp -f data/OTP_data/router-config.json data/OTP_data/live/ 2>/dev/null || true
+cp -f data/OTP_data/build-config.json data/OTP_data/staging/ 2>/dev/null || true
 
 # 3. Inizializza schema SQLite se non esiste
 python3 -c "from DB.database import get_connection; get_connection()" 2>/dev/null || \

@@ -7,11 +7,11 @@ chmod -R 777 data/OTP_data 2>/dev/null || true
 rm -f data/OTP_data/staging/graph.obj
 
 # Assicura la presenza dei file di configurazione
-cp -n data/OTP_data/build-config.json data/OTP_data/staging/ 2>/dev/null || true
-cp -n data/OTP_data/otp-config.json data/OTP_data/staging/ 2>/dev/null || true
-cp -n data/OTP_data/router-config.json data/OTP_data/staging/ 2>/dev/null || true
-cp -n data/OTP_data/otp-config.json data/OTP_data/live/ 2>/dev/null || true
-cp -n data/OTP_data/router-config.json data/OTP_data/live/ 2>/dev/null || true
+cp -f data/OTP_data/build-config.json data/OTP_data/staging/ 2>/dev/null || true
+cp -f data/OTP_data/otp-config.json data/OTP_data/staging/ 2>/dev/null || true
+cp -f data/OTP_data/router-config.json data/OTP_data/staging/ 2>/dev/null || true
+cp -f data/OTP_data/otp-config.json data/OTP_data/live/ 2>/dev/null || true
+cp -f data/OTP_data/router-config.json data/OTP_data/live/ 2>/dev/null || true
 
 echo "🔄 1/3 - Scarico e aggiorno GTFS in staging..."
 python3 app/dailyGTFSzipUpdater.py
