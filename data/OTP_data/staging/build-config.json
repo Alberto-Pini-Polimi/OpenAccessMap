@@ -1,5 +1,5 @@
 {
-  "transferRequests": [
+  "transferCacheRequests": [
     { "modes": "WALK" },
     { "modes": "WALK", "wheelchair": true, "wheelchairAccessibility": { "enabled": true } }
   ]
