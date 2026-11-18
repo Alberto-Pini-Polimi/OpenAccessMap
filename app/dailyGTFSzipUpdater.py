@@ -3,6 +3,7 @@ import csv
 import zipfile
 import shutil
 import json # Aggiunto per salvare lo stato giornaliero
+import tempfile
 from pathlib import Path
 
 # IMPORTO DAL PRIMO FILE!
@@ -134,7 +135,7 @@ def onceEach24H():
     # ora cancello i dati del monitoraggio orario delle 24h ormai passate (una sorta di reset)
     open(HOURLY_DATA_UPDATE_FILE, "w").close()
 
-    extraction_folder = STAGING_FOLDER / "tmp_gtfs_unzip"
+    extraction_folder = Path(tempfile.gettempdir()) / "tmp_gtfs_unzip"
 
     try:
         # unzip del gtfs
