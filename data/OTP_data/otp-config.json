@@ -1,9 +1,9 @@
 {
-  "otpFeatures" : {
+  "otpFeatures": {
     "FlexRouting": true,
     "GtfsGraphQlApi": true,
     "ParallelRouting": true,
-    "DebugUi": true,         
+    "DebugUi": true,
     "DebugRasterTiles": true
   }
 }

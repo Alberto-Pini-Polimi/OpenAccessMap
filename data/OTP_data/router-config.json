@@ -21,20 +21,19 @@
       }
     }
   },
-  "transit": {
-    "maxNumberOfTransfers": 10,
-    "transferCacheRequests": [
-      {
-        "modes": "WALK"
-      },
-      {
-        "modes": "WALK",
-        "wheelchair": true,
-        "wheelchairAccessibility": {
-          "enabled": true
-        }
+  "transferCacheRequests": [
+    {
+      "modes": "WALK"
+    },
+    {
+      "modes": "WALK",
+      "wheelchairAccessibility": {
+        "enabled": true
       }
-    ]
+    }
+  ],
+  "transit": {
+    "maxNumberOfTransfers": 10
   },
   "updaters": []
 }

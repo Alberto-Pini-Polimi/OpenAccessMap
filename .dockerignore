@@ -1,6 +1,8 @@
 .git
 .gitignore
 *.pyc
+*.zip
+*pbf
 __pycache__
 app/__pycache__
 app/DB/__pycache__
