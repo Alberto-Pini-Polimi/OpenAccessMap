@@ -52,10 +52,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
-      ofelia.job-exec.hourly-monitor.schedule: "0 1,2,3,5,6,7,9,10,11,13,14,15,17,18,19,21,22,23 * * *"
+      ofelia.job-exec.hourly-monitor.schedule: "0 0 1,2,3,5,6,7,9,10,11,13,14,15,17,18,19,21,22,23 * * *"
       ofelia.job-exec.hourly-monitor.container: "openaccessmap-web"
       ofelia.job-exec.hourly-monitor.command: "python3 app/hourlyMonitor.py"
-      ofelia.job-exec.total-build.schedule: "0 */4 * * *"
+      ofelia.job-exec.total-build.schedule: "0 0 */4 * * *"
       ofelia.job-exec.total-build.container: "openaccessmap-web"
       ofelia.job-exec.total-build.command: "/bin/bash /app/serverRoutine.sh"
     networks:
